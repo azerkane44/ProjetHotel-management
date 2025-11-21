@@ -1,4 +1,4 @@
-package com.example.springhotel.model;
+package com.example.springhotel;
 
 import jakarta.persistence.*;
 import lombok.*;
