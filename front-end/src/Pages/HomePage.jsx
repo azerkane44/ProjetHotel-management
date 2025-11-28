@@ -2,7 +2,6 @@
 import BarRecherche from "../components/BarRecherche";
 import CardHotel from "../components/CartHotel";
 import Filter from "../components/filter";
-import Navbar from "../components/NavBar";
 
 export default function HomePage() {
 
@@ -49,7 +48,6 @@ const hotels = [
 
   return (
     <div>
-      <Navbar />
       <BarRecherche />
 
       <div className="flex w-[90%] mx-auto mt-10 gap-6">
