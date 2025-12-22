@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function CardHotel({ hotel }) {
   // Fonction étoiles modernes
   const renderStars = (count) => {
@@ -7,17 +9,22 @@ export default function CardHotel({ hotel }) {
     return (
       <div className="flex text-sm">
         {Array.from({ length: count }).map((_, i) => (
-          <span key={"filled-" + i} className={filled}>★</span>
+          <span key={"filled-" + i} className={filled}>
+            ★
+          </span>
         ))}
         {Array.from({ length: 5 - count }).map((_, i) => (
-          <span key={"empty-" + i} className={empty}>★</span>
+          <span key={"empty-" + i} className={empty}>
+            ★
+          </span>
         ))}
       </div>
     );
   };
 
   return (
-    <div className="
+    <div
+      className="
       w-64 
       h-92               /* HAUTEUR FIXE */
       bg-white 
@@ -27,8 +34,8 @@ export default function CardHotel({ hotel }) {
       hover:shadow-xl 
       transition
       relative
-    ">
-      
+    "
+    >
       {/* Image */}
       <div className="relative h-32">
         <img
@@ -43,10 +50,7 @@ export default function CardHotel({ hotel }) {
 
       {/* Contenu compact */}
       <div className="p-3 space-y-1 text-sm">
-
-        <h3 className="font-bold text-gray-800 line-clamp-1">
-          {hotel.name}
-        </h3>
+        <h3 className="font-bold text-gray-800 line-clamp-1">{hotel.name}</h3>
 
         <p className="text-gray-500 line-clamp-1 text-xs">
           📍 {hotel.city}, {hotel.country}
@@ -67,11 +71,13 @@ export default function CardHotel({ hotel }) {
 
         <div className="flex justify-between items-center pt-1">
           <p className="text-blue-600 font-bold">{hotel.price}€</p>
-          <button className="bg-black text-white px-3 py-1.5 text-xs rounded-md">
+          <Link
+            to={`/hotels/${hotel.id}`}
+            className="bg-black text-white px-3 py-1.5 text-xs rounded-md hover:bg-gray-800"
+          >
             Voir détails
-          </button>
+          </Link>
         </div>
-
       </div>
     </div>
   );

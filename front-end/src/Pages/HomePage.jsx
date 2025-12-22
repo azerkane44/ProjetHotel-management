@@ -42,6 +42,30 @@ const hotels = [
     equipments: ["wifi", "parking"],
     imageUrl: "https://picsum.photos/400/302",
     description: "Charmant hôtel au pied des montagnes avec vue imprenable."
+  },
+  {
+    id: 4,
+    name: "City Center Inn",
+    city: "Lyon",
+    country: "France",
+    stars: 4,
+    price: 200,
+    reviews: 120,
+    equipments: ["wifi", "restaurant", "parking"],
+    imageUrl: "https://picsum.photos/400/303",
+    description: "Hôtel confortable situé au centre-ville, proche des attractions."
+  },
+  {
+    id: 5,
+    name: "Beachside Bungalow",
+    city: "Biarritz",
+    country: "France",
+    stars: 5,
+    price: 280,
+    reviews: 220,
+    equipments: ["wifi", "spa", "piscine", "restaurant"],
+    imageUrl: "https://picsum.photos/400/304",
+    description: "Bungalows luxueux avec vue sur l'océan et accès direct à la plage."
   }
 ];
     // Duplique pour tester

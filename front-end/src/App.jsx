@@ -2,10 +2,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import MainLayout from "./layout/MainLayout";
 
-import HomePage from "./pages/HomePage";
+
 import ConnextionUser from "./Pages/ConnextionUser";
 import InscriptionUser from "./Pages/InscriptionUser";
 import DetailsPage from "./Pages/DetailsPage";
+import HomePage from "./Pages/HomePage";
 
 function App() {
   return (
@@ -26,6 +27,8 @@ function App() {
 
         {/* Page 404 */}
         <Route path="*" element={<h1>404</h1>} />
+
+        <Route path="/hotels/:id" element={<DetailsPage />} />
 
       </Routes>
     </BrowserRouter>
