@@ -1,0 +1,158 @@
+commandes Git
+
+1️⃣ Comprendre l’état de ton repo (AVANT TOUT)
+git status
+
+👉 Montre où tu en es : fichiers modifiés, ajoutés, non suivis, branche actuelle.
+📌 À faire avant chaque action.
+
+git branch
+
+👉 Liste les branches locales.
+📌 Pour savoir où tu travailles réellement.
+
+git branch -a
+
+👉 Liste branches locales + distantes.
+📌 Pour voir ce que ton collègue a poussé sur GitHub.
+
+git log --oneline --graph --decorate
+
+👉 Historique lisible des commits + branches.
+📌 Pour comprendre ce qui a été fait avant de récupérer quoi que ce soit.
+
+2️⃣ Récupérer le travail du collègue (SANS RIEN TOUCHER)
+git fetch
+
+👉 Télécharge tout ce qui est sur GitHub, sans modifier ton code local.
+📌 Commande clé en équipe.
+
+fetch = observer sans risque
+pull = observer + modifier
+
+git fetch origin
+
+👉 Même chose, mais explicitement depuis GitHub (origin).
+
+git show origin/nomDeBranche
+
+👉 Affiche les derniers commits d’une branche distante.
+📌 Pour analyser avant d’intégrer.
+
+3️⃣ Comparer ton code avec celui du collègue
+git diff
+
+👉 Différences entre ton working tree et le dernier commit.
+
+git diff main origin/main
+
+👉 Compare ta branche main avec celle sur GitHub.
+📌 Pour voir ce que tu n’as pas encore.
+
+git diff maBranche origin/autreBranche
+
+👉 Compare ton travail avec celui du collègue.
+📌 Très important pour décider quoi récupérer.
+
+4️⃣ Tester le travail du collègue SANS MERGER
+git checkout nomDeBranche
+
+👉 Te place sur la branche du collègue.
+📌 Pour tester son code tel quel.
+
+git checkout -b test-collegue origin/nomDeBranche
+
+👉 Crée une branche locale de test basée sur son travail.
+📌 Méthode propre sans polluer ton travail.
+
+5️⃣ Intégrer le travail du collègue (PROPREMENT)
+🔹 Cas 1 : tout est bon → merge
+git merge nomDeBranche
+
+👉 Intègre toute la branche dans la tienne.
+📌 À faire seulement après analyse.
+
+🔹 Cas 2 : seulement certains fichiers → récupération ciblée
+git checkout nomDeBranche -- chemin/du/fichier
+
+👉 Récupère un fichier précis depuis une autre branche.
+📌 Très important dans ton cas (structure cassée, front/back mélangé).
+
+Exemples :
+
+git checkout Malik-backend -- back-end/src
+git checkout Malik-backend -- back-end/pom.xml
+
+git restore --source nomDeBranche chemin/du/fichier
+
+👉 Version moderne de la commande ci-dessus.
+📌 Même usage, plus clair.
+
+6️⃣ Gérer les conflits (INÉVITABLE EN ÉQUIPE)
+git merge
+
+👉 S’il y a conflit, Git s’arrête.
+
+git status
+
+👉 Te dit quels fichiers sont en conflit.
+
+git diff
+
+👉 Montre les marqueurs :
+
+<<<<<<<
+=======
+>>>>>>>
+
+git add fichier
+
+👉 Indique à Git : “ce fichier est corrigé”.
+
+git merge --continue
+
+👉 Termine le merge après résolution.
+
+7️⃣ Mettre ton travail à jour avec le remote (proprement)
+git pull --rebase
+
+👉 Récupère le remote sans créer de commits de merge.
+📌 Recommandé en équipe.
+
+git pull origin maBranche
+
+👉 Récupère + merge directement.
+📌 À éviter si tu ne sais pas ce qui arrive.
+
+8️⃣ Envoyer ton travail
+
+(Tu dis que tu connais, je résume juste)
+
+git push
+
+👉 Push sur la branche distante déjà liée.
+
+git push -u origin maBranche
+
+👉 Crée le lien local ↔ distant.
+📌 À faire une seule fois par branche.
+
+9️⃣ Nettoyer et sécuriser ton repo
+git stash
+
+👉 Met de côté ton travail temporairement.
+📌 Utile avant un fetch / pull risqué.
+
+git stash pop
+
+👉 Récupère ce que tu avais mis de côté.
+
+git reset --hard
+
+👉 Supprime tout le travail non commit.
+📌 À utiliser uniquement si tu sais ce que tu fais.
+
+git clean -fd
+
+👉 Supprime fichiers/dossiers non suivis.
+📌 Pour repartir propre.
