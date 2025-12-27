@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DiffGenerationConfig">
+    <option name="sourceModelValue" value="springHotel:entityManagerFactory" />
+    <option name="targetDbValue" value="d3d9b594-dc9c-4d49-b428-c209a9513cc2" />
+  </component>
+</project>
