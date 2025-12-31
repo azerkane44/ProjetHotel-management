@@ -1,15 +1,15 @@
 import { Navigate } from "react-router-dom";
 
-export default function ProtectedRoute({ children, allowedRoles }) {
-    const user = JSON.parse(localStorage.getItem("user"));
+export default function ProtectedRoute({ children, roleRequired }) {
+    const role = localStorage.getItem("role");
 
     // ❌ Pas connecté
-    if (!user) {
+    if (!role) {
         return <Navigate to="/Connexion" replace />;
     }
 
-    // ❌ Pas le bon rôle
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // ❌ Mauvais rôle
+    if (roleRequired && role !== roleRequired) {
         return <Navigate to="/" replace />;
     }
 
