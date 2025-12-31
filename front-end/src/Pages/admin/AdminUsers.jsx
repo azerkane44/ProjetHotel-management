@@ -22,7 +22,7 @@ export default function AdminUsers() {
     // Ajouter un utilisateur
     const handleAddUser = () => {
         setMessage("");
-        fetch(`http://localhost:8080/api/admin/users?role=${role}`, {
+        fetch(`http://localhost:8080/api/v1/register?role=${role}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })
@@ -78,6 +78,7 @@ export default function AdminUsers() {
                 >
                     <option value="ADMIN">Admin</option>
                     <option value="EMPLOYE">Employé</option>
+                    <option value="USER">Utilisateur</option>
                 </select>
                 <button
                     onClick={handleAddUser}
@@ -128,3 +129,4 @@ export default function AdminUsers() {
         </div>
     );
 }
+

@@ -32,30 +32,27 @@ public class RegistrationLoginController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegistrationRequest request) {
+    public ResponseEntity<?> register(
+            @RequestBody RegistrationRequest request,
+            @RequestParam(defaultValue = "USER") String role
+    ) {
 
-        // 🔍 Validation simple
+        // 🔍 Validation
         if (request.getEmail() == null || request.getEmail().isBlank()) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Email obligatoire"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Email obligatoire"));
         }
-
         if (request.getPassword() == null || request.getPassword().length() < 6) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Mot de passe trop court (min 6 caractères)"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Mot de passe trop court (min 6 caractères)"));
         }
-
-        // 🔴 Email déjà utilisé
         if (userRepository.findByEmail(request.getEmail()) != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("error", "Email déjà utilisé"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email déjà utilisé"));
         }
 
-        // 🔐 Rôle USER
-        Role userRole = roleRepository.findByName("ROLE_USER");
+        // 🔐 Récupère le rôle
+        Role userRole = roleRepository.findByName("ROLE_" + role.toUpperCase());
         if (userRole == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "ROLE_USER manquant en base"));
+                    .body(Map.of("error", "ROLE_" + role.toUpperCase() + " manquant en base"));
         }
 
         // 👤 Création utilisateur
@@ -67,7 +64,6 @@ public class RegistrationLoginController {
 
         userRepository.save(user);
 
-        // ✅ Réponse clean pour React
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
                         "message", "Utilisateur créé avec succès",

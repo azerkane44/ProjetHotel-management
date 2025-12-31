@@ -21,12 +21,13 @@ export default function ConnextionUser() {
             if (response.ok) {
                 const data = await response.json();
 
-                // 🔥 AJOUT ICI
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("role", data.role);
+                // 🔹 Stocke l'ID, l'email et le premier rôle (Admin / Employé / User)
+                localStorage.setItem("id", data.id);
+                localStorage.setItem("email", data.email);
+                localStorage.setItem("role", data.roles[0]); // <- très important
 
                 setMessage("Connexion réussie !");
-                window.location.href = "/";
+                window.location.href = "/"; // redirige vers l'accueil
             } else {
                 const errorText = await response.text();
                 setMessage("Erreur : " + errorText);

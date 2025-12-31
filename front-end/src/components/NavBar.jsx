@@ -1,10 +1,8 @@
-import { Box, Flex } from "@chakra-ui/react";
-import React from "react";
 import { Link } from "react-router-dom";
+import React from "react";
 
 export default function Navbar() {
   const role = localStorage.getItem("role");
-
   const isLogged = !!role;
   const isAdmin = role === "ROLE_ADMIN";
   const isEmploye = role === "ROLE_EMPLOYE";
@@ -70,12 +68,17 @@ export default function Navbar() {
         )}
 
         {isLogged && (
-          <button
-            onClick={logout}
-            className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
-          >
-            Déconnexion
-          </button>
+          <>
+            <span className="px-4 py-2 rounded-lg bg-yellow-400 text-black font-medium">
+              {role.replace("ROLE_", "")}
+            </span>
+            <button
+              onClick={logout}
+              className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
+            >
+              Déconnexion
+            </button>
+          </>
         )}
       </div>
     </nav>

@@ -24,33 +24,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // ❌ Pas de CSRF pour une API
+                // ❌ Pas de CSRF pour une API REST
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // ✅ CORS activé (config globale)
+                // ✅ CORS activé
                 .cors(cors -> {})
 
                 .authorizeHttpRequests(auth -> auth
                         // ✅ Préflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // ✅ Auth & register
+                        // ✅ Auth & register accessibles à tous
                         .requestMatchers("/api/v1/login", "/api/v1/register").permitAll()
 
-                        // ✅ ADMIN (temporairement ouvert)
-                        .requestMatchers("/api/admin/**").permitAll()
+                        // 🔒 Routes admin protégées
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // ✅ API publique
+                        // 🔒 Routes employé protégées
+                        .requestMatchers("/api/employe/**").hasRole("EMPLOYE")
+
+                        // ✅ Autres API publiques
                         .requestMatchers("/api/**").permitAll()
 
-                        // 🔒 le reste (plus tard)
-                        .anyRequest().permitAll()
+                        // 🔒 Toutes les autres requêtes doivent être authentifiées
+                        .anyRequest().authenticated()
                 )
 
-                // ❌ PAS de formLogin pour React
+                // ❌ Pas de formLogin (React gère le login)
                 .formLogin(AbstractHttpConfigurer::disable)
 
-                // ❌ PAS de logout HTML
+                // ❌ Pas de logout HTML
                 .logout(AbstractHttpConfigurer::disable)
 
                 .build();
@@ -61,7 +64,6 @@ public class SecurityConfig {
             HttpSecurity http,
             PasswordEncoder passwordEncoder
     ) throws Exception {
-
         AuthenticationManagerBuilder builder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
 
