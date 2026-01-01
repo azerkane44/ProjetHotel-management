@@ -1,56 +1,54 @@
 package com.example.springhotel.configuration;
 
-import com.example.springhotel.service.MyUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
 
-    private final MyUserDetailsService userDetailsService;
-
-    public SecurityConfig(MyUserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // ❌ Pas de CSRF pour une API REST
+                // ❌ Désactive CSRF pour API REST (React gère le front)
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // ✅ CORS activé
-                .cors(cors -> {})
+                // ✅ Active CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
+                // ✅ Configuration des accès
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Préflight CORS
+                        // Préflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // ✅ Auth & register accessibles à tous
+                        // Auth & register accessibles à tous
                         .requestMatchers("/api/v1/login", "/api/v1/register").permitAll()
 
-                        // 🔒 Routes admin protégées
+                        // Fichiers statiques / images
+                        .requestMatchers("/uploads/**").permitAll()
+
+                        // Routes admin protégées
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // 🔒 Routes employé protégées
+                        // Routes employé protégées
                         .requestMatchers("/api/employe/**").hasRole("EMPLOYE")
 
-                        // ✅ Autres API publiques
+                        // Autres API publiques
                         .requestMatchers("/api/**").permitAll()
 
-                        // 🔒 Toutes les autres requêtes doivent être authentifiées
+                        // Tout le reste nécessite authentification
                         .anyRequest().authenticated()
                 )
 
-                // ❌ Pas de formLogin (React gère le login)
+                // ❌ Pas de login HTML (React gère le front)
                 .formLogin(AbstractHttpConfigurer::disable)
 
                 // ❌ Pas de logout HTML
@@ -59,23 +57,26 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            HttpSecurity http,
-            PasswordEncoder passwordEncoder
-    ) throws Exception {
-        AuthenticationManagerBuilder builder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
-
-        builder
-                .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder);
-
-        return builder.build();
-    }
-
+    // ✅ Password encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // ✅ Configuration CORS globale pour React
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+
+        // Autorise React sur localhost:5173 ou tout autre port
+        config.addAllowedOriginPattern("http://localhost:*");
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
     }
 }
