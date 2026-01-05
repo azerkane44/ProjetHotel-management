@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Frontend (Vite / React)
+front-end/.vite/
+front-end/node_modules/
+front-end/dist/
+
+# Backend
+node_modules/
+
+# Logs / cache
+*.log
+.env
