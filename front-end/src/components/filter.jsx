@@ -4,7 +4,7 @@ export default function Filter({ onFilterChange, onReset }) {
   const [filters, setFilters] = useState({
     prixMax: 500,
     categories: [],
-    equipements: [],
+    equipments: [],
     notationMin: 0,
   });
 
@@ -23,11 +23,11 @@ export default function Filter({ onFilterChange, onReset }) {
   };
 
   const handleEquipmentChange = (equipment) => {
-    const newEquipements = filters.equipements.includes(equipment)
-      ? filters.equipements.filter((e) => e !== equipment)
-      : [...filters.equipements, equipment];
+    const newEquipements = filters.equipments.includes(equipment)
+      ? filters.equipments.filter((e) => e !== equipment)
+      : [...filters.equipments, equipment];
 
-    const newFilters = { ...filters, equipements: newEquipements };
+    const newFilters = { ...filters, equipments: newEquipements };
     setFilters(newFilters);
   };
 
@@ -37,7 +37,7 @@ export default function Filter({ onFilterChange, onReset }) {
         prixMin: 20,
         prixMax: filters.prixMax,
         categories: filters.categories,
-        equipements: filters.equipements,
+        equipments: filters.equipments,
         notationMin: filters.notationMin,
       });
     }
@@ -47,7 +47,7 @@ export default function Filter({ onFilterChange, onReset }) {
     const resetFilters = {
       prixMax: 500,
       categories: [],
-      equipements: [],
+      equipments: [],
       notationMin: 0,
     };
     setFilters(resetFilters);
@@ -158,7 +158,7 @@ export default function Filter({ onFilterChange, onReset }) {
             >
               <input
                 type="checkbox"
-                checked={filters.equipements.includes(equipment.value)}
+                checked={filters.equipments.includes(equipment.value)}
                 onChange={() => handleEquipmentChange(equipment.value)}
                 className="h-5 w-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
               />

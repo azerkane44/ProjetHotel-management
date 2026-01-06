@@ -2,11 +2,15 @@ package com.example.springhotel.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.util.Collection;
 
+@Data
 @Entity
-public class Role {
+public class RoleEntity {
 
+    // Getters et setters
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -15,7 +19,7 @@ public class Role {
 
     @ManyToMany(mappedBy = "roles")
     @JsonIgnore // Evite la boucle infinie
-    private Collection<User> users;
+    private Collection<UserEntity> userEntities;
 
     @ManyToMany
     @JoinTable(
@@ -26,19 +30,7 @@ public class Role {
     private Collection<Privilege> privileges;
 
     // Constructeurs
-    public Role() {}
-    public Role(String name) { this.name = name; }
+    public RoleEntity() {}
+    public RoleEntity(String name) { this.name = name; }
 
-    // Getters et setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public Collection<User> getUsers() { return users; }
-    public void setUsers(Collection<User> users) { this.users = users; }
-
-    public Collection<Privilege> getPrivileges() { return privileges; }
-    public void setPrivileges(Collection<Privilege> privileges) { this.privileges = privileges; }
 }

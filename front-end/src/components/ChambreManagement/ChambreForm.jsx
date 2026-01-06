@@ -8,7 +8,7 @@ export default function ChambreForm({ chambre, onSubmit, onCancel }) {
     superficie: '',
     typeLit: '',
     description: '',
-    equipements: [],
+    equipments: [],
     imageUrls: [],
     hotelId: ''
   });
@@ -28,7 +28,7 @@ const handleAddEquipement = () => {
 if (equipementInput.trim()) {
 setFormData({
 ...formData,
-equipements: [...formData.equipements, equipementInput.trim()]
+equipments: [...formData.equipments, equipementInput.trim()]
 });
 setEquipementInput('');
 }
@@ -36,7 +36,7 @@ setEquipementInput('');
 const handleRemoveEquipement = (index) => {
 setFormData({
 ...formData,
-equipements: formData.equipements.filter((_, i) => i !== index)
+equipments: formData.equipments.filter((_, i) => i !== index)
 });
 };
 const handleAddImage = () => {
@@ -178,7 +178,7 @@ return (
         </button>
       </div>
       <div className="flex flex-wrap gap-2">
-        {formData.equipements.map((eq, idx) => (
+        {formData.equipments.map((eq, idx) => (
           <span
             key={idx}
             className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center gap-2"

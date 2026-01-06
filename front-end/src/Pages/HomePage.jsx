@@ -1,10 +1,10 @@
-// front-end/src/Pages/HomePage.jsx
+// front-end/src/Pages/HomePage.jsx (version complète)
 import { useEffect, useState } from "react";
 import BarRecherche from "../components/BarRecherche";
 import CardHotel from "../components/CardHotel";
-import Filter from "../components/filter";
 import HotelMap from "../components/HotelMap";
 import { useHotelSearch } from "../hooks/useHotelSearch";
+import Filter from "../components/FilterPro.jsx";
 
 export default function HomePage() {
   const [allHotels, setAllHotels] = useState([]);
