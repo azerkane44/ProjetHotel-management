@@ -27,11 +27,11 @@ public class ChambreService {
                 .id(chambre.getId())
                 .nom(chambre.getNom())
                 .prixParNuit(chambre.getPrixParNuit())
-                .capacite(chambre.getCapacite())
+                .capacity(chambre.getCapacity())
                 .superficie(chambre.getSuperficie())
                 .typeLit(chambre.getTypeLit())
                 .description(chambre.getDescription())
-                .equipements(chambre.getEquipements())
+                .equipment(chambre.getEquipment())
                 .imageUrls(chambre.getImageUrls())
                 .hotelId(chambre.getHotel().getId())
                 .hotelNom(chambre.getHotel().getNom())
@@ -47,11 +47,11 @@ public class ChambreService {
                 .id(dto.getId())
                 .nom(dto.getNom())
                 .prixParNuit(dto.getPrixParNuit())
-                .capacite(dto.getCapacite())
+                .capacity(dto.getCapacity())
                 .superficie(dto.getSuperficie())
                 .typeLit(dto.getTypeLit())
                 .description(dto.getDescription())
-                .equipements(dto.getEquipements())
+                .equipment(dto.getEquipment())
                 .imageUrls(dto.getImageUrls())
                 .hotel(hotel)
                 .build();
@@ -95,11 +95,11 @@ public class ChambreService {
         // Mise à jour des champs
         existante.setNom(chambreDTO.getNom());
         existante.setPrixParNuit(chambreDTO.getPrixParNuit());
-        existante.setCapacite(chambreDTO.getCapacite());
+        existante.setCapacity(chambreDTO.getCapacity());
         existante.setSuperficie(chambreDTO.getSuperficie());
         existante.setTypeLit(chambreDTO.getTypeLit());
         existante.setDescription(chambreDTO.getDescription());
-        existante.setEquipements(chambreDTO.getEquipements());
+        existante.setEquipment(chambreDTO.getEquipment());
         existante.setImageUrls(chambreDTO.getImageUrls());
 
         // Mise à jour de l'hôtel si changé

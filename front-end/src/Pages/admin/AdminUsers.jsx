@@ -9,7 +9,7 @@ export default function AdminUsers() {
 
     // Charger tous les utilisateurs
     const fetchUsers = () => {
-        fetch("http://localhost:8080/api/admin/users")
+        fetch("http://localhost:8080/api/hotels")
             .then(res => res.json())
             .then(data => setUsers(data))
             .catch(err => console.error("Erreur fetch:", err));

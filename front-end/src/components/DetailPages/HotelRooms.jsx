@@ -6,7 +6,38 @@ import ReservationModal from './ReservationModal';
 export default function HotelRooms({ hotelId }) {
   const { chambres, loading, error } = useChambres(hotelId);
   const [selectedChambre, setSelectedChambre] = useState(null);
-
+    const rooms = [
+        {
+            id: 1,
+            name: "Chambre Classique",
+            capacity: 2,
+            size: 25,
+            bedType: "Lit Queen",
+            amenities: ["Climatisation", "Minibar", "Télévision écran plat"],
+            pricePerNight: 245,
+            imageUrl: "https://picsum.photos/400/200",
+        },
+        {
+            id: 2,
+            name: "Suite Deluxe",
+            capacity: 4,
+            size: 45,
+            bedType: "2 Lits King",
+            amenities: ["Climatisation", "Minibar", "Télévision écran plat", "Jacuzzi"],
+            pricePerNight: 450,
+            imageUrl: "https://picsum.photos/400/201",
+        },
+        {
+            id: 3,
+            name: "Chambre Familiale",
+            capacity: 5,
+            size: 35,
+            bedType: "1 Lit King + 1 Canapé-lit",
+            amenities: ["Climatisation", "Minibar", "Télévision écran plat", "Kitchenette"],
+            pricePerNight: 320,
+            imageUrl: "https://picsum.photos/400/202",
+        },
+    ]
   // ✅ DEBUG : Afficher ce qui est reçu
   useEffect(() => {
     console.log('🏨 HotelRooms - hotelId:', hotelId);

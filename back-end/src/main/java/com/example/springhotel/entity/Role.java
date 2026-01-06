@@ -8,7 +8,7 @@ import java.util.Collection;
 
 @Data
 @Entity
-public class RoleEntity {
+public class Role {
 
     // Getters et setters
     @Id
@@ -30,7 +30,7 @@ public class RoleEntity {
     private Collection<Privilege> privileges;
 
     // Constructeurs
-    public RoleEntity() {}
-    public RoleEntity(String name) { this.name = name; }
+    public Role() {}
+    public Role(String name) { this.name = name; }
 
 }

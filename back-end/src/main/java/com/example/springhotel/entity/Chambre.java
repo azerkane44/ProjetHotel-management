@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,7 +28,7 @@ public class Chambre {
     private BigDecimal prixParNuit; // Prix en euros
 
     @Column(nullable = false)
-    private Integer capacite; // Nombre de personnes
+    private Integer capacity; // Nombre de personnes
 
     @Column(nullable = false)
     private Integer superficie; // En m²
@@ -45,7 +44,7 @@ public class Chambre {
     @CollectionTable(name = "chambre_equipements", joinColumns = @JoinColumn(name = "chambre_id"))
     @Column(name = "equipement")
     @Builder.Default
-    private List<String> equipements = new ArrayList<>(); // Ex: ["Climatisation", "Minibar", "TV"]
+    private List<String> equipment = new ArrayList<>(); // Ex: ["Climatisation", "Minibar", "TV"]
 
     // Images multiples (slider)
     @ElementCollection

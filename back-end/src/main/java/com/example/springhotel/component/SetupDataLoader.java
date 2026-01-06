@@ -1,10 +1,10 @@
 package com.example.springhotel.component;
 
+import com.example.springhotel.entity.UserEntity;
 import org.springframework.stereotype.Component;
 
 import com.example.springhotel.entity.Privilege;
 import com.example.springhotel.entity.Role;
-import com.example.springhotel.entity.User;
 import com.example.springhotel.repository.PrivilegeRepository;
 import com.example.springhotel.repository.RoleRepository;
 import com.example.springhotel.repository.UserRepository;
@@ -53,14 +53,14 @@ public class SetupDataLoader implements
         createRoleIfNotFound("ROLE_USER", Arrays.asList(readPrivilege));
 
         Role adminRole = roleRepository.findByName("ROLE_ADMIN");
-        User user = new User();
-        user.setFirstName("Test");
-        user.setLastName("Test");
-        user.setPassword(passwordEncoder.encode("test"));
-        user.setEmail("test@test.com");
-        user.setRoles(Arrays.asList(adminRole));
-        user.setEnabled(true);
-        userRepository.save(user);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setFirstName("Test");
+        userEntity.setLastName("Test");
+        userEntity.setPassword(passwordEncoder.encode("test"));
+        userEntity.setEmail("test@test.com");
+        userEntity.setRoles(Arrays.asList(adminRole));
+        userEntity.setEnabled(true);
+        userRepository.save(userEntity);
 
         alreadySetup = true;
     }

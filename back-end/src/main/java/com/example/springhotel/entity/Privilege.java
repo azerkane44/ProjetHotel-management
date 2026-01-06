@@ -2,11 +2,15 @@ package com.example.springhotel.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.util.Collection;
 
+@Data
 @Entity
 public class Privilege {
 
+    // Getters et setters
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -20,13 +24,4 @@ public class Privilege {
     public Privilege() {}
     public Privilege(String name) { this.name = name; }
 
-    // Getters et setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public Collection<Role> getRoles() { return roles; }
-    public void setRoles(Collection<Role> roles) { this.roles = roles; }
 }

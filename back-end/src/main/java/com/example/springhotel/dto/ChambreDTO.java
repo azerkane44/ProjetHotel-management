@@ -16,11 +16,11 @@ public class ChambreDTO {
     private Long id;
     private String nom;
     private BigDecimal prixParNuit;
-    private Integer capacite;
+    private Integer capacity;
     private Integer superficie;
     private String typeLit;
     private String description;
-    private List<String> equipements;
+    private List<String> equipment;
     private List<String> imageUrls;
     private Long hotelId;
     private String hotelNom;

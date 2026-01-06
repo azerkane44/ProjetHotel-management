@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Entity(name = "UserEntity")
+@Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class User {
+public class UserEntity {
 
     // Getters et setters
     @Id

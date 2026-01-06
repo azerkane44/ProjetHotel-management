@@ -1,7 +1,7 @@
 package com.example.springhotel.controller;
 
 import com.example.springhotel.entity.Role;
-import com.example.springhotel.entity.User;
+import com.example.springhotel.entity.UserEntity;
 import com.example.springhotel.repository.RoleRepository;
 import com.example.springhotel.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,30 +27,30 @@ public class AdminUserController {
 
     // Récupérer tous les utilisateurs
     @GetMapping("/users")
-    public List<User> getAllUsers() {
+    public List<UserEntity> getAllUsers() {
         return userRepository.findAll();
     }
 
     // Ajouter un utilisateur
     @PostMapping("/users")
-    public ResponseEntity<?> createUser(@RequestBody User user, @RequestParam String role) {
+    public ResponseEntity<?> createUser(@RequestBody UserEntity userEntity, @RequestParam String role) {
 
-        if (userRepository.findByEmail(user.getEmail()) != null) {
+        if (userRepository.findByEmail(userEntity.getEmail()) != null) {
             return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setEnabled(true);
+        userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+        userEntity.setEnabled(true);
 
         // Chercher le rôle en base
         Role roleEntity = roleRepository.findByName("ROLE_" + role.toUpperCase());
         if (roleEntity == null) {
             return ResponseEntity.badRequest().body("Role not found");
         }
-        user.addRole(roleEntity);
+        userEntity.addRole(roleEntity);
 
-        User savedUser = userRepository.save(user);
-        return ResponseEntity.ok(savedUser);
+        UserEntity savedUserEntity = userRepository.save(userEntity);
+        return ResponseEntity.ok(savedUserEntity);
     }
 
     // Supprimer un utilisateur
