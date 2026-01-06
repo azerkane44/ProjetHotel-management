@@ -18,98 +18,76 @@ public class HotelSearchService {
     public List<Hotel> searchHotels(HotelSearchDTO searchDTO) {
         List<Hotel> hotels = hotelRepository.findAll();
 
-        return hotels.stream()
-                .filter(hotel -> filterByDestination(hotel, searchDTO.getDestination()))
-                .filter(hotel -> filterByPrice(hotel, searchDTO.getPrixMin(), searchDTO.getPrixMax()))
-                .filter(hotel -> filterByCategory(hotel, searchDTO.getCategories()))
-                .filter(hotel -> filterByRating(hotel, searchDTO.getNotationMin()))
-                .filter(hotel -> filterByEquipments(hotel, searchDTO.getEquipements()))
-                .filter(hotel -> filterByLocation(hotel, searchDTO.getLatitude(),
-                        searchDTO.getLongitude(), searchDTO.getRadiusKm()))
-                .collect(Collectors.toList());
+        // Filtrer par ville
+        if (searchDTO.getVille() != null && !searchDTO.getVille().isEmpty()) {
+            hotels = hotels.stream()
+                    .filter(h -> h.getVille() != null &&
+                            h.getVille().toLowerCase().contains(searchDTO.getVille().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        // Filtrer par prix
+        if (searchDTO.getPrixMin() != null) {
+            hotels = hotels.stream()
+                    .filter(h -> h.getPrixMoyenNuit() != null && h.getPrixMoyenNuit() >= searchDTO.getPrixMin())
+                    .collect(Collectors.toList());
+        }
+
+        if (searchDTO.getPrixMax() != null) {
+            hotels = hotels.stream()
+                    .filter(h -> h.getPrixMoyenNuit() != null && h.getPrixMoyenNuit() <= searchDTO.getPrixMax())
+                    .collect(Collectors.toList());
+        }
+
+        // Filtrer par catégorie (étoiles)
+        if (searchDTO.getCategorieMin() != null) {
+            hotels = hotels.stream()
+                    .filter(h -> h.getCategorie() != null && h.getCategorie() >= searchDTO.getCategorieMin())
+                    .collect(Collectors.toList());
+        }
+
+        // Filtrer par note moyenne
+        if (searchDTO.getNoteMoyenneMin() != null) {
+            hotels = hotels.stream()
+                    .filter(h -> h.getNoteMoyenne() != null && h.getNoteMoyenne() >= searchDTO.getNoteMoyenneMin())
+                    .collect(Collectors.toList());
+        }
+
+        // Filtrer par équipements
+        if (searchDTO.getEquipements() != null && !searchDTO.getEquipements().isEmpty()) {
+            hotels = hotels.stream()
+                    .filter(h -> h.getEquipements() != null &&
+                            h.getEquipements().containsAll(searchDTO.getEquipements()))
+                    .collect(Collectors.toList());
+        }
+
+        // Filtrer par distance (si coordonnées fournies)
+        if (searchDTO.getLatitude() != null && searchDTO.getLongitude() != null && searchDTO.getRayonKm() != null) {
+            hotels = hotels.stream()
+                    .filter(h -> {
+                        if (h.getLatitude() == null || h.getLongitude() == null) return false;
+                        double distance = calculateDistance(
+                                searchDTO.getLatitude(), searchDTO.getLongitude(),
+                                h.getLatitude(), h.getLongitude()
+                        );
+                        return distance <= searchDTO.getRayonKm();
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        return hotels;
     }
 
-    public List<Hotel> findHotelsByLocation(String ville, Double latitude,
-                                            Double longitude, Double radiusKm) {
-        List<Hotel> hotels = hotelRepository.findAll();
-
-        return hotels.stream()
-                .filter(hotel -> {
-                    if (ville != null && !ville.isEmpty()) {
-                        return hotel.getVille().toLowerCase().contains(ville.toLowerCase());
-                    }
-                    if (latitude != null && longitude != null) {
-                        return isWithinRadius(hotel, latitude, longitude, radiusKm);
-                    }
-                    return true;
-                })
-                .collect(Collectors.toList());
-    }
-
-    private boolean filterByDestination(Hotel hotel, String destination) {
-        if (destination == null || destination.isEmpty()) return true;
-        return hotel.getVille().toLowerCase().contains(destination.toLowerCase()) ||
-                hotel.getAdresse().toLowerCase().contains(destination.toLowerCase());
-    }
-
-    private boolean filterByPrice(Hotel hotel, Double prixMin, Double prixMax) {
-        if (prixMin == null && prixMax == null) return true;
-        double hotelPrice = hotel.getPrixMoyenNuit();
-        if (prixMin != null && hotelPrice < prixMin) return false;
-        if (prixMax != null && hotelPrice > prixMax) return false;
-        return true;
-    }
-
-    private boolean filterByCategory(Hotel hotel, List<Integer> categories) {
-        if (categories == null || categories.isEmpty()) return true;
-        return categories.contains(hotel.getCategorie());
-    }
-
-    private boolean filterByRating(Hotel hotel, Double notationMin) {
-        if (notationMin == null) return true;
-        return hotel.getNoteMoyenne() >= notationMin;
-    }
-
-    private boolean filterByEquipments(Hotel hotel, List<String> equipements) {
-        if (equipements == null || equipements.isEmpty()) return true;
-
-        List<String> hotelEquipements = hotel.getEquipements();
-        if (hotelEquipements == null) return false;
-
-        return hotelEquipements.containsAll(equipements);
-    }
-
-    private boolean filterByLocation(Hotel hotel, Double latitude,
-                                     Double longitude, Double radiusKm) {
-        if (latitude == null || longitude == null) return true;
-        return isWithinRadius(hotel, latitude, longitude, radiusKm);
-    }
-
-    private boolean isWithinRadius(Hotel hotel, Double latitude,
-                                   Double longitude, Double radiusKm) {
-        if (hotel.getLatitude() == null || hotel.getLongitude() == null) return false;
-
-        double distance = calculateDistance(
-                latitude, longitude,
-                hotel.getLatitude(), hotel.getLongitude()
-        );
-
-        return distance <= radiusKm;
-    }
-
-    // Formule de Haversine
+    // Formule de Haversine pour calculer la distance entre deux points GPS
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Rayon de la Terre en km
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
-
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
         return R * c;
     }
 }

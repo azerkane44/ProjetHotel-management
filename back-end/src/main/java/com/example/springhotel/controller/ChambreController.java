@@ -1,7 +1,7 @@
 package com.example.springhotel.controller;
 
 import com.example.springhotel.dto.ChambreDTO;
-import com.example.springhotel.dto.DisponibiliteRequestDTO;
+import com.example.springhotel.dto.DisponibiliteDTO;
 import com.example.springhotel.service.ChambreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -91,7 +91,7 @@ public class ChambreController {
             @RequestParam String dateFin,
             @RequestParam(required = false) Long hotelId
     ) {
-        DisponibiliteRequestDTO request = new DisponibiliteRequestDTO();
+        DisponibiliteDTO request = new DisponibiliteDTO();
         request.setDateDebut(java.time.LocalDate.parse(dateDebut));
         request.setDateFin(java.time.LocalDate.parse(dateFin));
         request.setHotelId(hotelId);

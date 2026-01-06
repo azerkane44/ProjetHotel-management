@@ -32,10 +32,31 @@ export const useHotelSearch = () => {
     }
   }, []);
 
+  const getAllHotels = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:8080/api/hotels/all');
+
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement');
+      }
+
+      const data = await response.json();
+      setHotels(data);
+    } catch (err) {
+      setError(err.message);
+      console.error('Erreur:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const resetSearch = useCallback(() => {
     setHotels([]);
     setError(null);
   }, []);
 
-  return { hotels, loading, error, searchHotels, resetSearch };
+  return { hotels, loading, error, searchHotels, getAllHotels, resetSearch };
 };

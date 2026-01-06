@@ -1,13 +1,17 @@
 package com.example.springhotel.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ChambreDTO {
     private Long id;
     private String nom;
@@ -19,5 +23,5 @@ public class ChambreDTO {
     private List<String> equipements;
     private List<String> imageUrls;
     private Long hotelId;
-    private String hotelNom; // Pour l'affichage côté front
+    private String hotelNom;
 }

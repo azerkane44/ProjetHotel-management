@@ -1,20 +1,21 @@
 package com.example.springhotel.service;
 
-import com.example.springhotel.dto.ReservationDTO;
+import com.example.springhotel.dto.ReservationRequestDTO;
+import com.example.springhotel.dto.ReservationResponseDTO;
 import com.example.springhotel.entity.Chambre;
 import com.example.springhotel.entity.Reservation;
-import com.example.springhotel.exception.ChambreNonDisponibleException;
-import com.example.springhotel.exception.ResourceNotFoundException;
+import com.example.springhotel.entity.User;
 import com.example.springhotel.repository.ChambreRepository;
 import com.example.springhotel.repository.ReservationRepository;
+import com.example.springhotel.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,134 +23,95 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final ChambreRepository chambreRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
-    // Mapper : Entity -> DTO
-    private ReservationDTO toDTO(Reservation reservation) {
-        return ReservationDTO.builder()
+    @Transactional
+    public ReservationResponseDTO creerReservation(ReservationRequestDTO request, String userEmail) {
+        // 1. Récupérer la chambre
+        Chambre chambre = chambreRepository.findById(request.getChambreId())
+                .orElseThrow(() -> new RuntimeException("Chambre non trouvée"));
+
+        // 2. Récupérer l'utilisateur (optionnel si connecté)
+        User user = null;
+        if (userEmail != null) {
+            user = userRepository.findByEmail(userEmail).orElse(null);
+        }
+
+        // 3. Vérifier la disponibilité
+        boolean disponible = verifierDisponibilite(
+                request.getChambreId(),
+                request.getDateDebut(),
+                request.getDateFin()
+        );
+
+        if (!disponible) {
+            throw new RuntimeException("Chambre non disponible pour ces dates");
+        }
+
+        // 4. Calculer le prix total
+        long nombreNuits = ChronoUnit.DAYS.between(request.getDateDebut(), request.getDateFin());
+        double prixTotal = chambre.getPrixParNuit().doubleValue() * nombreNuits;
+
+        // 5. Générer un code de confirmation
+        String codeConfirmation = genererCodeConfirmation();
+
+        // 6. Créer la réservation
+        Reservation reservation = Reservation.builder()
+                .chambre(chambre)
+                .user(user)
+                .dateDebut(request.getDateDebut())
+                .dateFin(request.getDateFin())
+                .nomClient(request.getNomClient())
+                .emailClient(request.getEmailClient())
+                .telephoneClient(request.getTelephoneClient())
+                .nombrePersonnes(request.getNombrePersonnes())
+                .prixTotal(prixTotal)
+                .statut(Reservation.StatutReservation.CONFIRMEE)
+                .codeConfirmation(codeConfirmation)
+                .build();
+
+        // 7. Sauvegarder
+        Reservation saved = reservationRepository.save(reservation);
+
+        // 8. Envoyer l'email de confirmation
+        try {
+            emailService.envoyerEmailConfirmation(saved);
+        } catch (Exception e) {
+            System.err.println("⚠️ Erreur envoi email (réservation créée quand même) : " + e.getMessage());
+        }
+
+        // 9. Convertir en DTO et retourner
+        return convertToDTO(saved);
+    }
+
+    private boolean verifierDisponibilite(Long chambreId, LocalDate dateDebut, LocalDate dateFin) {
+        return reservationRepository.findByChambreIdAndDateRange(chambreId, dateDebut, dateFin).isEmpty();
+    }
+
+    private String genererCodeConfirmation() {
+        return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
+    private ReservationResponseDTO convertToDTO(Reservation reservation) {
+        return ReservationResponseDTO.builder()
                 .id(reservation.getId())
+                .userId(reservation.getUser() != null ? reservation.getUser().getId() : null)
+                .chambreId(reservation.getChambre().getId())
+                .chambreNom(reservation.getChambre().getNom())
+                .hotelId(reservation.getChambre().getHotel().getId())
+                .hotelNom(reservation.getChambre().getHotel().getNom())
+                .hotelVille(reservation.getChambre().getHotel().getVille())
+                .hotelImageUrl(reservation.getChambre().getHotel().getImageUrl())
                 .dateDebut(reservation.getDateDebut())
                 .dateFin(reservation.getDateFin())
                 .nomClient(reservation.getNomClient())
                 .emailClient(reservation.getEmailClient())
                 .telephoneClient(reservation.getTelephoneClient())
                 .nombrePersonnes(reservation.getNombrePersonnes())
-                .prixTotal(reservation.getPrixTotal())
+                .prixTotal(BigDecimal.valueOf(reservation.getPrixTotal()))
                 .statut(reservation.getStatut())
-                .chambreId(reservation.getChambre().getId())
-                .chambreNom(reservation.getChambre().getNom())
+                .codeConfirmation(reservation.getCodeConfirmation())
                 .build();
-    }
-
-    // Mapper : DTO -> Entity
-    private Reservation toEntity(ReservationDTO dto) {
-        Chambre chambre = chambreRepository.findById(dto.getChambreId())
-                .orElseThrow(() -> new ResourceNotFoundException("Chambre non trouvée avec l'ID : " + dto.getChambreId()));
-
-        return Reservation.builder()
-                .id(dto.getId())
-                .dateDebut(dto.getDateDebut())
-                .dateFin(dto.getDateFin())
-                .nomClient(dto.getNomClient())
-                .emailClient(dto.getEmailClient())
-                .telephoneClient(dto.getTelephoneClient())
-                .nombrePersonnes(dto.getNombrePersonnes())
-                .prixTotal(dto.getPrixTotal())
-                .statut(dto.getStatut())
-                .chambre(chambre)
-                .build();
-    }
-
-    // Calculer le prix total
-    private BigDecimal calculerPrixTotal(Chambre chambre, ReservationDTO dto) {
-        long nombreNuits = ChronoUnit.DAYS.between(dto.getDateDebut(), dto.getDateFin());
-        return chambre.getPrixParNuit().multiply(BigDecimal.valueOf(nombreNuits));
-    }
-
-    // CREATE
-    @Transactional
-    public ReservationDTO creerReservation(ReservationDTO reservationDTO) {
-        // Vérifier la disponibilité
-        boolean estDisponible = !reservationRepository.existsReservationChevauchante(
-                reservationDTO.getChambreId(),
-                reservationDTO.getDateDebut(),
-                reservationDTO.getDateFin()
-        );
-
-        if (!estDisponible) {
-            throw new ChambreNonDisponibleException(
-                    "La chambre n'est pas disponible pour les dates sélectionnées : " +
-                            reservationDTO.getDateDebut() + " - " + reservationDTO.getDateFin()
-            );
-        }
-
-        // Récupérer la chambre
-        Chambre chambre = chambreRepository.findById(reservationDTO.getChambreId())
-                .orElseThrow(() -> new ResourceNotFoundException("Chambre non trouvée avec l'ID : " + reservationDTO.getChambreId()));
-
-        // Calculer le prix total
-        BigDecimal prixTotal = calculerPrixTotal(chambre, reservationDTO);
-        reservationDTO.setPrixTotal(prixTotal);
-
-        // Créer la réservation
-        Reservation reservation = toEntity(reservationDTO);
-        Reservation saved = reservationRepository.save(reservation);
-        return toDTO(saved);
-    }
-
-    // READ ALL
-    public List<ReservationDTO> getAllReservations() {
-        return reservationRepository.findAll().stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    // READ BY ID
-    public ReservationDTO getReservationById(Long id) {
-        Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Réservation non trouvée avec l'ID : " + id));
-        return toDTO(reservation);
-    }
-
-    // READ BY CHAMBRE
-    public List<ReservationDTO> getReservationsByChambre(Long chambreId) {
-        return reservationRepository.findByChambreId(chambreId).stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    // READ BY CLIENT
-    public List<ReservationDTO> getReservationsByClient(String email) {
-        return reservationRepository.findByEmailClient(email).stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    // UPDATE STATUT
-    @Transactional
-    public ReservationDTO updateStatut(Long id, Reservation.StatutReservation nouveauStatut) {
-        Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Réservation non trouvée avec l'ID : " + id));
-
-        reservation.setStatut(nouveauStatut);
-        Reservation updated = reservationRepository.save(reservation);
-        return toDTO(updated);
-    }
-
-    // DELETE
-    @Transactional
-    public void deleteReservation(Long id) {
-        if (!reservationRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Réservation non trouvée avec l'ID : " + id);
-        }
-        reservationRepository.deleteById(id);
-    }
-
-    // VÉRIFIER DISPONIBILITÉ
-    public boolean verifierDisponibilite(Long chambreId, ReservationDTO reservationDTO) {
-        return !reservationRepository.existsReservationChevauchante(
-                chambreId,
-                reservationDTO.getDateDebut(),
-                reservationDTO.getDateFin()
-        );
     }
 }

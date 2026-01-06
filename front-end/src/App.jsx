@@ -6,6 +6,7 @@ import HomePage from "./Pages/HomePage";
 import ConnexionUser from "./Pages/ConnexionUser";
 import InscriptionUser from "./Pages/InscriptionUser";
 import DetailsPage from "./Pages/DetailsPage";
+import MesReservationsPage from './Pages/MesReservationsPage';
 
 // ADMIN
 import ChambreManagementPage from "./Pages/ChambreManagementPage";
@@ -47,6 +48,13 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+
+                <Route path="/mes-reservations" element={
+                  <ProtectedRoute>
+                    <MesReservationsPage />
+                  </ProtectedRoute>
+                } />
+
                 <Route
                     path="/admin/add-user"
                     element={

@@ -1,7 +1,7 @@
 package com.example.springhotel.service;
 
 import com.example.springhotel.dto.ChambreDTO;
-import com.example.springhotel.dto.DisponibiliteRequestDTO;
+import com.example.springhotel.dto.DisponibiliteDTO;
 import com.example.springhotel.entity.Chambre;
 import com.example.springhotel.entity.Hotel;
 import com.example.springhotel.exception.ResourceNotFoundException;
@@ -123,7 +123,7 @@ public class ChambreService {
     }
 
     // DISPONIBILITÉ
-    public List<ChambreDTO> getChambresDisponibles(DisponibiliteRequestDTO request) {
+    public List<ChambreDTO> getChambresDisponibles(DisponibiliteDTO request) {
         List<Chambre> chambres;
 
         if (request.getHotelId() != null) {

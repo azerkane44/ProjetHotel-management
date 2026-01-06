@@ -35,9 +35,15 @@ public class HotelController {
         return hotelRepository.findById(id);
     }
 
-    // 🔹 POST — CRÉER un hôtel + image
+    // 🔹 POST — CRÉER un hôtel (JSON uniquement, sans image)
+    @PostMapping(consumes = "application/json")
+    public Hotel createHotelJson(@RequestBody Hotel hotel) {
+        return hotelRepository.save(hotel);
+    }
+
+    // 🔹 POST — CRÉER un hôtel avec image (multipart/form-data)
     @PostMapping(consumes = "multipart/form-data")
-    public Hotel createHotel(
+    public Hotel createHotelWithImage(
             @RequestParam String nom,
             @RequestParam(required = false) String adresse,
             @RequestParam(required = false) String ville,
@@ -68,9 +74,31 @@ public class HotelController {
         return hotelRepository.save(hotel);
     }
 
-    // 🔹 POST — MODIFIER un hôtel + image (ou sans)
+    // 🔹 PUT — MODIFIER un hôtel (JSON uniquement, sans image)
+    @PutMapping("/{id}")
+    public Hotel updateHotelJson(
+            @PathVariable Long id,
+            @RequestBody Hotel hotelData
+    ) {
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Hotel introuvable"));
+
+        hotel.setNom(hotelData.getNom());
+        hotel.setAdresse(hotelData.getAdresse());
+        hotel.setVille(hotelData.getVille());
+        hotel.setDescription(hotelData.getDescription());
+        hotel.setNoteMoyenne(hotelData.getNoteMoyenne());
+
+        if (hotelData.getImageUrl() != null && !hotelData.getImageUrl().isEmpty()) {
+            hotel.setImageUrl(hotelData.getImageUrl());
+        }
+
+        return hotelRepository.save(hotel);
+    }
+
+    // 🔹 POST — MODIFIER un hôtel avec image (multipart/form-data)
     @PostMapping(value = "/{id}", consumes = "multipart/form-data")
-    public Hotel updateHotel(
+    public Hotel updateHotelWithImage(
             @PathVariable Long id,
             @RequestParam String nom,
             @RequestParam(required = false) String adresse,
@@ -110,7 +138,7 @@ public class HotelController {
         Hotel hotel = hotelRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Hotel introuvable"));
 
-        if (hotel.getImageUrl() != null) {
+        if (hotel.getImageUrl() != null && !hotel.getImageUrl().startsWith("http")) {
             Path imagePath = Paths.get("src/main/resources/static" + hotel.getImageUrl());
             Files.deleteIfExists(imagePath);
         }

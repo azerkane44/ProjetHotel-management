@@ -1,25 +1,26 @@
 package com.example.springhotel.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class HotelSearchDTO {
-    private String destination;
+    private String ville;
     private LocalDate dateArrivee;
     private LocalDate dateDepart;
-    private Integer nombreVoyageurs;
-
-    // Filtres
+    private Integer nombrePersonnes;
     private Double prixMin;
     private Double prixMax;
-    private List<Integer> categories;
-    private Double notationMin;
+    private Integer categorieMin; // Nombre d'étoiles minimum
     private List<String> equipements;
-
-    // Géolocalisation
+    private Double noteMoyenneMin;
     private Double latitude;
     private Double longitude;
-    private Double radiusKm;
+    private Double rayonKm; // Pour la recherche par distance
 }

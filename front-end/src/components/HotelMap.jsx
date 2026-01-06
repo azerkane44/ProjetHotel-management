@@ -1,97 +1,203 @@
-// front-end/src/components/HotelMap.jsx
-import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useState } from "react";
+import BarRecherche from "../components/BarRecherche";
+import CardHotel from "../components/CardHotel";
+import Filter from "../components/filter";
+import HotelMap from "../components/HotelMap";
+import { useHotelSearch } from "../hooks/useHotelSearch";
 
-// Fix pour les icônes Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+export default function HomePage() {
+  const [allHotels, setAllHotels] = useState([]);
+  const [displayedHotels, setDisplayedHotels] = useState([]);
+  const [showMap, setShowMap] = useState(false);
+  const [selectedHotelId, setSelectedHotelId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { hotels, loading, error, searchHotels } = useHotelSearch();
 
-export default function HotelMap({ hotels, onHotelClick, selectedHotelId }) {
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const markersRef = useRef([]);
-
+  // Charger tous les hôtels au démarrage
   useEffect(() => {
-    if (!mapRef.current) return;
+    console.log("🔄 Chargement des hôtels...");
+    setIsLoading(true);
 
-    // Initialiser la carte
-    if (!mapInstanceRef.current) {
-      mapInstanceRef.current = L.map(mapRef.current).setView([48.8566, 2.3522], 6);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-      }).addTo(mapInstanceRef.current);
-    }
-
-    // Nettoyer les anciens marqueurs
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
-
-    // Ajouter les nouveaux marqueurs
-    if (hotels && hotels.length > 0) {
-      const bounds = [];
-
-      hotels.forEach(hotel => {
-        if (hotel.latitude && hotel.longitude) {
-          const isSelected = hotel.id === selectedHotelId;
-
-          const customIcon = L.divIcon({
-            className: 'custom-marker',
-            html: `
-              <div class="relative">
-                <div class="${isSelected ? 'bg-red-600' : 'bg-blue-600'} text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white transform ${isSelected ? 'scale-125' : 'scale-100'} transition-transform">
-                  <span class="text-lg">🏨</span>
-                </div>
-                <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 ${isSelected ? 'border-t-red-600' : 'border-t-blue-600'} border-l-transparent border-r-transparent"></div>
-              </div>
-            `,
-            iconSize: [40, 40],
-            iconAnchor: [20, 40],
-          });
-
-          const marker = L.marker([hotel.latitude, hotel.longitude], { icon: customIcon })
-            .addTo(mapInstanceRef.current);
-
-          marker.bindPopup(`
-            <div class="p-2">
-              <h3 class="font-bold text-lg">${hotel.nom}</h3>
-              <p class="text-gray-600">${hotel.ville}</p>
-              <p class="text-yellow-500 font-semibold">⭐ ${hotel.noteMoyenne || 'N/A'}</p>
-              <p class="text-blue-600 font-bold">${hotel.prixMoyenNuit || 'N/A'}€ / nuit</p>
-            </div>
-          `);
-
-          marker.on('click', () => {
-            if (onHotelClick) {
-              onHotelClick(hotel);
-            }
-          });
-
-          markersRef.current.push(marker);
-          bounds.push([hotel.latitude, hotel.longitude]);
+    fetch("http://localhost:8080/api/hotels")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("✅ Hôtels chargés:", data);
+        setAllHotels(data);
+        setDisplayedHotels(data);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("❌ Erreur lors du chargement des hôtels:", error);
+        setIsLoading(false);
       });
+  }, []);
 
-      // Ajuster la vue pour afficher tous les marqueurs
-      if (bounds.length > 0) {
-        mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
-      }
+  // Mettre à jour les hôtels affichés après une recherche
+  useEffect(() => {
+    if (hotels.length > 0) {
+      console.log("🔍 Résultats de recherche:", hotels);
+      setDisplayedHotels(hotels);
     }
+  }, [hotels]);
 
-    return () => {
-      // Cleanup si nécessaire
-    };
-  }, [hotels, selectedHotelId, onHotelClick]);
+  const handleSearch = async (searchParams) => {
+    console.log("🔍 Recherche avec params:", searchParams);
+    await searchHotels(searchParams);
+  };
+
+  const handleFilterChange = (filters) => {
+    console.log("🎯 Application des filtres:", filters);
+
+    // Utiliser les résultats de recherche s'ils existent, sinon tous les hôtels
+    const baseHotels = hotels.length > 0 ? hotels : allHotels;
+
+    const filtered = baseHotels.filter(hotel => {
+      // Filtre prix
+      if (filters.prixMax && hotel.prixMoyenNuit > filters.prixMax) return false;
+      if (filters.prixMin && hotel.prixMoyenNuit < filters.prixMin) return false;
+
+      // Filtre catégorie
+      if (filters.categories && filters.categories.length > 0) {
+        if (!filters.categories.includes(hotel.categorie)) return false;
+      }
+
+      // Filtre notation
+      if (filters.notationMin && hotel.noteMoyenne < filters.notationMin) return false;
+
+      // Filtre équipements
+      if (filters.equipements && filters.equipements.length > 0) {
+        const hotelEquipements = hotel.equipements || [];
+        const hasAllEquipements = filters.equipements.every(eq =>
+          hotelEquipements.includes(eq)
+        );
+        if (!hasAllEquipements) return false;
+      }
+
+      return true;
+    });
+
+    console.log("✅ Hôtels filtrés:", filtered.length);
+    setDisplayedHotels(filtered);
+  };
+
+  const handleResetFilters = () => {
+    console.log("↺ Réinitialisation des filtres");
+    setDisplayedHotels(allHotels);
+  };
+
+  const handleHotelClick = (hotel) => {
+    setSelectedHotelId(hotel.id);
+    const element = document.getElementById(`hotel-${hotel.id}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   return (
-    <div className="w-full h-full rounded-xl overflow-hidden shadow-lg">
-      <div ref={mapRef} className="w-full h-full min-h-[500px]" />
+    <div className="min-h-screen bg-gray-50">
+      <BarRecherche onSearch={handleSearch} />
+
+      <div className="w-[90%] mx-auto mt-10">
+        {/* Bouton pour basculer entre liste et carte */}
+        <div className="flex justify-end mb-4 gap-3">
+          <button
+            onClick={() => setShowMap(false)}
+            className={`px-6 py-2 rounded-lg font-semibold transition ${
+              !showMap
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 border border-gray-300"
+            }`}
+          >
+            📋 Liste
+          </button>
+          <button
+            onClick={() => setShowMap(true)}
+            className={`px-6 py-2 rounded-lg font-semibold transition ${
+              showMap
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 border border-gray-300"
+            }`}
+          >
+            🗺️ Carte
+          </button>
+        </div>
+
+        <div className="flex gap-6">
+          <Filter
+            onFilterChange={handleFilterChange}
+            onReset={handleResetFilters}
+          />
+
+          <div className="flex-1">
+            {(loading || isLoading) && (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="ml-4 text-gray-600">Chargement des hôtels...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                ❌ {error}
+              </div>
+            )}
+
+            {!loading && !isLoading && !error && displayedHotels.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-gray-500 text-xl">
+                  😔 Aucun hôtel ne correspond à vos critères
+                </p>
+                <button
+                  onClick={handleResetFilters}
+                  className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Réinitialiser les filtres
+                </button>
+              </div>
+            )}
+
+            {!loading && !isLoading && !error && displayedHotels.length > 0 && (
+              <>
+                {!showMap ? (
+                  <div>
+                    <p className="text-gray-600 mb-4 font-medium">
+                      🏨 {displayedHotels.length} hôtel(s) trouvé(s)
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {displayedHotels.map((hotel) => (
+                        <div
+                          key={hotel.id}
+                          id={`hotel-${hotel.id}`}
+                          className={`transition-all ${
+                            selectedHotelId === hotel.id
+                              ? "ring-4 ring-blue-500 rounded-lg"
+                              : ""
+                          }`}
+                        >
+                          <CardHotel hotel={hotel} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-[700px]">
+                    <HotelMap
+                      hotels={displayedHotels}
+                      onHotelClick={handleHotelClick}
+                      selectedHotelId={selectedHotelId}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -24,10 +25,14 @@ public class LoginController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
 
-        User existingUser = userRepository.findByEmail(loginRequest.getEmail());
-        if (existingUser == null) {
+        // Utilisation de Optional<User>
+        Optional<User> userOptional = userRepository.findByEmail(loginRequest.getEmail());
+
+        if (userOptional.isEmpty()) {
             return ResponseEntity.badRequest().body("Utilisateur non trouvé");
         }
+
+        User existingUser = userOptional.get();
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), existingUser.getPassword())) {
             return ResponseEntity.badRequest().body("Mot de passe incorrect");
@@ -39,7 +44,13 @@ public class LoginController {
                 .map(role -> role.getName())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new UserResponse(existingUser.getId(), existingUser.getEmail(), roles));
+        return ResponseEntity.ok(new UserResponse(
+                existingUser.getId(),
+                existingUser.getEmail(),
+                existingUser.getFirstName(),
+                existingUser.getLastName(),
+                roles
+        ));
     }
 
     // Classe interne pour la requête de login
@@ -58,16 +69,22 @@ public class LoginController {
     static class UserResponse {
         private Long id;
         private String email;
+        private String firstName;
+        private String lastName;
         private List<String> roles;
 
-        public UserResponse(Long id, String email, List<String> roles) {
+        public UserResponse(Long id, String email, String firstName, String lastName, List<String> roles) {
             this.id = id;
             this.email = email;
+            this.firstName = firstName;
+            this.lastName = lastName;
             this.roles = roles;
         }
 
         public Long getId() { return id; }
         public String getEmail() { return email; }
+        public String getFirstName() { return firstName; }
+        public String getLastName() { return lastName; }
         public List<String> getRoles() { return roles; }
     }
 }

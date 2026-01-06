@@ -12,39 +12,33 @@ import java.util.List;
 @Repository
 public interface ChambreRepository extends JpaRepository<Chambre, Long> {
 
-    // Récupérer toutes les chambres d'un hôtel
+    // Récupère les chambres d'un hôtel
     List<Chambre> findByHotelId(Long hotelId);
 
-    // Récupérer les chambres disponibles entre deux dates
-    @Query("""
-        SELECT c FROM Chambre c 
-        WHERE c.id NOT IN (
-            SELECT r.chambre.id FROM Reservation r 
-            WHERE r.statut != 'ANNULEE' 
-            AND (
-                (r.dateDebut <= :dateFin AND r.dateFin >= :dateDebut)
-            )
-        )
-    """)
-    List<Chambre> findChambresDisponibles(
+    // Récupère les chambres disponibles pour un hôtel et une période
+    @Query("SELECT c FROM Chambre c WHERE c.hotel.id = :hotelId " +
+            "AND c.id NOT IN (" +
+            "  SELECT r.chambre.id FROM Reservation r " +
+            "  WHERE r.statut != 'ANNULEE' " +
+            "  AND ((r.dateDebut BETWEEN :dateDebut AND :dateFin) " +
+            "  OR (r.dateFin BETWEEN :dateDebut AND :dateFin) " +
+            "  OR (r.dateDebut <= :dateDebut AND r.dateFin >= :dateFin))" +
+            ")")
+    List<Chambre> findChambresDisponiblesParHotel(
+            @Param("hotelId") Long hotelId,
             @Param("dateDebut") LocalDate dateDebut,
             @Param("dateFin") LocalDate dateFin
     );
 
-    // Récupérer les chambres disponibles d'un hôtel spécifique
-    @Query("""
-        SELECT c FROM Chambre c 
-        WHERE c.hotel.id = :hotelId 
-        AND c.id NOT IN (
-            SELECT r.chambre.id FROM Reservation r 
-            WHERE r.statut != 'ANNULEE' 
-            AND (
-                (r.dateDebut <= :dateFin AND r.dateFin >= :dateDebut)
-            )
-        )
-    """)
-    List<Chambre> findChambresDisponiblesParHotel(
-            @Param("hotelId") Long hotelId,
+    // Récupère toutes les chambres disponibles pour une période
+    @Query("SELECT c FROM Chambre c WHERE c.id NOT IN (" +
+            "  SELECT r.chambre.id FROM Reservation r " +
+            "  WHERE r.statut != 'ANNULEE' " +
+            "  AND ((r.dateDebut BETWEEN :dateDebut AND :dateFin) " +
+            "  OR (r.dateFin BETWEEN :dateDebut AND :dateFin) " +
+            "  OR (r.dateDebut <= :dateDebut AND r.dateFin >= :dateFin))" +
+            ")")
+    List<Chambre> findChambresDisponibles(
             @Param("dateDebut") LocalDate dateDebut,
             @Param("dateFin") LocalDate dateFin
     );

@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 export default function AdminDashboard() {
     const [hotels, setHotels] = useState([]);
     const [form, setForm] = useState({ nom: "", adresse: "", ville: "", description: "", noteMoyenne: 0 });
+    const [imageFile, setImageFile] = useState(null);
 
     // Charger les hôtels
     const loadHotels = () => {
         fetch("http://localhost:8080/api/hotels")
             .then(res => res.json())
-            .then(data => setHotels(data));
+            .then(data => setHotels(data))
+            .catch(err => console.error("Erreur chargement:", err));
     };
 
     useEffect(() => {
@@ -17,22 +19,40 @@ export default function AdminDashboard() {
 
     // Ajouter un hôtel
     const createHotel = () => {
+        const formData = new FormData();
+        formData.append("nom", form.nom);
+        formData.append("adresse", form.adresse);
+        formData.append("ville", form.ville);
+        formData.append("description", form.description);
+        formData.append("noteMoyenne", form.noteMoyenne);
+
+        if (imageFile) {
+            formData.append("image", imageFile);
+        }
+
         fetch("http://localhost:8080/api/hotels", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form)
+            body: formData // ⚠️ PAS de Content-Type (automatique avec FormData)
         })
+            .then(res => {
+                if (!res.ok) throw new Error("Erreur lors de la création");
+                return res.json();
+            })
             .then(() => {
                 loadHotels();
                 setForm({ nom: "", adresse: "", ville: "", description: "", noteMoyenne: 0 });
-            });
+                setImageFile(null);
+            })
+            .catch(err => console.error("Erreur création:", err));
     };
 
     // Supprimer un hôtel
     const deleteHotel = (id) => {
         fetch(`http://localhost:8080/api/hotels/${id}`, {
             method: "DELETE"
-        }).then(() => loadHotels());
+        })
+            .then(() => loadHotels())
+            .catch(err => console.error("Erreur suppression:", err));
     };
 
     return (
@@ -58,6 +78,14 @@ export default function AdminDashboard() {
                 <input className="border p-2 w-full mb-2" placeholder="Note moyenne"
                        type="number" step="0.1"
                        value={form.noteMoyenne} onChange={(e) => setForm({ ...form, noteMoyenne: e.target.value })} />
+
+                {/* 🆕 Input pour l'image */}
+                <input
+                    className="border p-2 w-full mb-2"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files[0])}
+                />
 
                 <button
                     className="bg-blue-600 text-white py-2 px-4 rounded"

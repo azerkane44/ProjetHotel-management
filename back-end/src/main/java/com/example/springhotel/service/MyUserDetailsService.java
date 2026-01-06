@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -32,22 +33,25 @@ public class MyUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
 
-        User user = userRepository.findByEmail(email);
+        // ✅ Utilisation de Optional<User>
+        Optional<User> userOptional = userRepository.findByEmail(email);
 
-        // ✅ COMPORTEMENT NORMAL
-        if (user == null) {
+        // ✅ Vérification avec Optional
+        if (userOptional.isEmpty()) {
             throw new UsernameNotFoundException(
                     "Utilisateur introuvable avec l'email : " + email
             );
         }
 
+        User user = userOptional.get();
+
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
                 user.isEnabled(),
-                true,
-                true,
-                true,
+                true, // accountNonExpired
+                true, // credentialsNonExpired
+                true, // accountNonLocked
                 getAuthorities(user.getRoles())
         );
     }

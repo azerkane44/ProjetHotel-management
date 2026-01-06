@@ -1,8 +1,8 @@
 package com.example.springhotel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -40,8 +40,8 @@ public class Reservation {
     private Integer nombrePersonnes;
 
     // Prix total de la réservation (calculé selon le nombre de nuits)
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal prixTotal;
+    @Column(nullable = false)
+    private Double prixTotal;
 
     // Statut de la réservation
     @Enumerated(EnumType.STRING)
@@ -49,10 +49,21 @@ public class Reservation {
     @Builder.Default
     private StatutReservation statut = StatutReservation.EN_ATTENTE;
 
+    // Code de confirmation unique
+    @Column(unique = true)
+    private String codeConfirmation;
+
     // Relation avec Chambre (ManyToOne)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chambre_id", nullable = false)
+    @JsonIgnore
     private Chambre chambre;
+
+    // Relation avec User (ManyToOne) - Optionnel si l'utilisateur n'est pas connecté
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     // Métadonnées
     @Column(nullable = false, updatable = false)

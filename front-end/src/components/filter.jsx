@@ -1,4 +1,3 @@
-// front-end/src/components/filter.jsx (version améliorée)
 import { useState } from "react";
 
 export default function Filter({ onFilterChange, onReset }) {
@@ -52,13 +51,15 @@ export default function Filter({ onFilterChange, onReset }) {
       notationMin: 0,
     };
     setFilters(resetFilters);
+
+    // Appeler onReset pour réinitialiser les hôtels affichés
     if (onReset) {
       onReset();
     }
   };
 
   return (
-    <div className="w-72 bg-white shadow-xl rounded-2xl p-6 space-y-6 sticky top-4">
+    <div className="w-72 bg-white shadow-xl rounded-2xl p-6 space-y-6 sticky top-4 h-fit">
       <h2 className="text-2xl font-bold text-gray-800 border-b pb-3">
         Filtres
       </h2>
@@ -145,11 +146,11 @@ export default function Filter({ onFilterChange, onReset }) {
 
         <div className="flex flex-col space-y-2 text-gray-700">
           {[
-            { value: "wifi", label: "📶 Wifi", icon: "📶" },
-            { value: "restaurant", label: "🍽️ Restaurant", icon: "🍽️" },
-            { value: "parking", label: "🅿️ Parking", icon: "🅿️" },
-            { value: "piscine", label: "🏊 Piscine", icon: "🏊" },
-            { value: "spa", label: "💆 Spa", icon: "💆" },
+            { value: "wifi", label: "📶 Wifi" },
+            { value: "restaurant", label: "🍽️ Restaurant" },
+            { value: "parking", label: "🅿️ Parking" },
+            { value: "piscine", label: "🏊 Piscine" },
+            { value: "spa", label: "💆 Spa" },
           ].map((equipment) => (
             <label
               key={equipment.value}

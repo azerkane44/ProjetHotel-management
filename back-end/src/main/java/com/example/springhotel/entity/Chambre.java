@@ -1,5 +1,7 @@
 package com.example.springhotel.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -55,10 +57,12 @@ public class Chambre {
     // Relation avec Hotel (ManyToOne)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
+    @JsonBackReference  // ✅ Ajout de cette annotation
     private Hotel hotel;
 
     // Relation avec Reservation (OneToMany, bidirectionnelle)
     @OneToMany(mappedBy = "chambre", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore  // ✅ Ajout de cette annotation
     @Builder.Default
     private List<Reservation> reservations = new ArrayList<>();
 
@@ -81,5 +85,9 @@ public class Chambre {
     public void removeReservation(Reservation reservation) {
         reservations.remove(reservation);
         reservation.setChambre(null);
+    }
+
+    public Object getType() {
+        return null;
     }
 }

@@ -49,11 +49,25 @@ public class User {
     public List<Role> getRoles() { return roles; }
     public void setRoles(List<Role> roles) { this.roles = roles; }
 
+    // ⭐ MÉTHODES UTILITAIRES POUR COMPATIBILITÉ
+    public String getNom() {
+        return lastName;
+    }
+
+    public String getPrenom() {
+        return firstName;
+    }
+
     // Méthode utilitaire pour ajouter un rôle
     public void addRole(Role role) {
         this.roles.add(role);
     }
 
     public void setRole(String roleAdmin) {
+        // Implémentation si nécessaire
+    }
+
+    public User orElseThrow(Object utilisateurNonTrouvé) {
+        return null;
     }
 }
