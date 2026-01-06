@@ -28,6 +28,22 @@ public class Hotel {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime dateCreation;
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @ElementCollection
+    @CollectionTable(name = "hotel_equipements", joinColumns = @JoinColumn(name = "hotel_id"))
+    @Column(name = "equipement")
+    private List<String> equipements;
+
+    @Column(name = "prix_moyen_nuit")
+    private Double prixMoyenNuit;
+
+    @Column(name = "categorie")
+    private Integer categorie; // 3, 4, 5 étoiles
 
     // Relation bidirectionnelle avec Chambre
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)

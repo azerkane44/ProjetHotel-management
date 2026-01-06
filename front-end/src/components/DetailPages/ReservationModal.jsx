@@ -1,257 +1,228 @@
-import React, { useState } from 'react';
-import { useReservations } from '../../hooks/useReservations';
+// front-end/src/components/DetailPages/ReservationModal.jsx (amélioré)
+import { useState } from 'react';
 
-export default function ReservationModal({ chambre, onClose, onSuccess }) {
-  const { creerReservation, verifierDisponibilite, loading, error } = useReservations();
-
+export default function ReservationModal({ isOpen, onClose, room, hotelName }) {
   const [formData, setFormData] = useState({
-    dateDebut: '',
-    dateFin: '',
-    nomClient: '',
-    emailClient: '',
-    telephoneClient: '',
-    nombrePersonnes: 1
+    dateArrivee: '',
+    dateDepart: '',
+    nombrePersonnes: 1,
+    nom: '',
+    prenom: '',
+    email: '',
+    telephone: '',
   });
 
-  const [disponibilite, setDisponibilite] = useState(null);
-  const [prixTotal, setPrixTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+
+  const calculateNights = () => {
+    if (!formData.dateArrivee || !formData.dateDepart) return 0;
+    const start = new Date(formData.dateArrivee);
+    const end = new Date(formData.dateDepart);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const calculateTotal = () => {
+    const nights = calculateNights();
+    return nights * (room?.prix || 0);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    setDisponibilite(null); // Reset disponibilité quand on change les dates
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  // Calculer le nombre de nuits et le prix
-  const calculerPrix = () => {
-    if (formData.dateDebut && formData.dateFin) {
-      const debut = new Date(formData.dateDebut);
-      const fin = new Date(formData.dateFin);
-      const nuits = Math.ceil((fin - debut) / (1000 * 60 * 60 * 24));
-
-      if (nuits > 0) {
-        const prix = chambre.prixParNuit * nuits;
-        setPrixTotal(prix);
-        return nuits;
-      }
-    }
-    return 0;
-  };
-
-  // Vérifier la disponibilité
-  const handleVerifierDisponibilite = async () => {
-    const nuits = calculerPrix();
-    if (nuits <= 0) {
-      alert('Veuillez sélectionner des dates valides');
-      return;
-    }
-
-    const result = await verifierDisponibilite(chambre.id, {
-      dateDebut: formData.dateDebut,
-      dateFin: formData.dateFin,
-      chambreId: chambre.id
-    });
-
-    if (result.success) {
-      setDisponibilite(result.disponible);
-    }
-  };
-
-  // Créer la réservation
-  const handleReserver = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-    if (!disponibilite) {
-      alert('Veuillez d\'abord vérifier la disponibilité');
-      return;
-    }
+    try {
+      const token = localStorage.getItem('token');
 
-    const reservation = {
-      ...formData,
-      chambreId: chambre.id,
-      prixTotal,
-      statut: 'EN_ATTENTE'
-    };
+      const reservationData = {
+        chambreId: room.id,
+        dateArrivee: formData.dateArrivee,
+        dateDepart: formData.dateDepart,
+        nombrePersonnes: formData.nombrePersonnes,
+        prixTotal: calculateTotal(),
+      };
 
-    const result = await creerReservation(reservation);
+      const response = await fetch('http://localhost:8080/api/reservations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(reservationData),
+      });
 
-    if (result.success) {
-      alert('Réservation effectuée avec succès !');
-      onSuccess?.();
-      onClose();
+      if (!response.ok) {
+        throw new Error('Erreur lors de la réservation');
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        setSuccess(false);
+      }, 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const nombreNuits = calculerPrix();
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-start mb-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-t-2xl">
+          <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold">{chambre.nom}</h2>
-              <p className="text-gray-600">{chambre.hotelNom}</p>
+              <h2 className="text-2xl font-bold">Réserver votre séjour</h2>
+              <p className="text-blue-100 mt-1">{hotelName}</p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-2xl"
+              className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition"
             >
-              ×
+              ✕
             </button>
           </div>
+        </div>
 
-          {/* Formulaire */}
-          <form onSubmit={handleReserver} className="space-y-4">
-            {/* Dates */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Date d'arrivée
-                </label>
-                <input
-                  type="date"
-                  name="dateDebut"
-                  value={formData.dateDebut}
-                  onChange={handleChange}
-                  min={new Date().toISOString().split('T')[0]}
-                  required
-                  className="w-full border rounded-lg px-3 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Date de départ
-                </label>
-                <input
-                  type="date"
-                  name="dateFin"
-                  value={formData.dateFin}
-                  onChange={handleChange}
-                  min={formData.dateDebut || new Date().toISOString().split('T')[0]}
-                  required
-                  className="w-full border rounded-lg px-3 py-2"
-                />
-              </div>
-            </div>
-
-            {/* Nombre de personnes */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Nombre de personnes
-              </label>
-              <input
-                type="number"
-                name="nombrePersonnes"
-                value={formData.nombrePersonnes}
-                onChange={handleChange}
-                min="1"
-                max={chambre.capacite}
-                required
-                className="w-full border rounded-lg px-3 py-2"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Capacité max : {chambre.capacite} personne(s)
+        <div className="p-6">
+          {success ? (
+            <div className="text-center py-10">
+              <div className="text-6xl mb-4">✅</div>
+              <h3 className="text-2xl font-bold text-green-600 mb-2">
+                Réservation confirmée !
+              </h3>
+              <p className="text-gray-600">
+                Vous allez recevoir un email de confirmation
               </p>
             </div>
-
-            {/* Informations client */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Nom complet
-              </label>
-              <input
-                type="text"
-                name="nomClient"
-                value={formData.nomClient}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg px-3 py-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                name="emailClient"
-                value={formData.emailClient}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg px-3 py-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Téléphone
-              </label>
-              <input
-                type="tel"
-                name="telephoneClient"
-                value={formData.telephoneClient}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg px-3 py-2"
-              />
-            </div>
-
-            {/* Récapitulatif prix */}
-            {nombreNuits > 0 && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between mb-2">
-                  <span>{chambre.prixParNuit}€ × {nombreNuits} nuit{nombreNuits > 1 ? 's' : ''}</span>
-                  <span className="font-semibold">{prixTotal}€</span>
+          ) : (
+            <>
+              {/* Détails de la chambre */}
+              <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                <h3 className="font-bold text-lg mb-2">{room?.type}</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Prix par nuit:</span>
+                    <span className="font-bold ml-2">{room?.prix}€</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Capacité:</span>
+                    <span className="font-bold ml-2">{room?.capacite} pers.</span>
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Bouton vérifier disponibilité */}
-            {!disponibilite && (
-              <button
-                type="button"
-                onClick={handleVerifierDisponibilite}
-                disabled={loading || !formData.dateDebut || !formData.dateFin}
-                className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 disabled:bg-gray-300"
-              >
-                {loading ? 'Vérification...' : 'Vérifier la disponibilité'}
-              </button>
-            )}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Dates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date d'arrivée *
+                    </label>
+                    <input
+                      type="date"
+                      name="dateArrivee"
+                      value={formData.dateArrivee}
+                      onChange={handleChange}
+                      required
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date de départ *
+                    </label>
+                    <input
+                      type="date"
+                      name="dateDepart"
+                      value={formData.dateDepart}
+                      onChange={handleChange}
+                      required
+                      min={formData.dateArrivee || new Date().toISOString().split('T')[0]}
+                      className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
 
-            {/* Message disponibilité */}
-            {disponibilite !== null && (
-              <div className={`p-4 rounded-lg ${
-                disponibilite ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-              }`}>
-                {disponibilite
-                  ? '✓ Chambre disponible pour ces dates'
-                  : '✗ Chambre non disponible pour ces dates'
-                }
-              </div>
-            )}
+                {/* Nombre de personnes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombre de personnes *
+                  </label>
+                  <input
+                    type="number"
+                    name="nombrePersonnes"
+                    value={formData.nombrePersonnes}
+                    onChange={handleChange}
+                    required
+                    min="1"
+                    max={room?.capacite}
+                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
 
-            {/* Erreur */}
-            {error && (
-              <div className="p-4 bg-red-50 text-red-800 rounded-lg">
-                {error}
-              </div>
-            )}
+                {/* Récapitulatif */}
+                {calculateNights() > 0 && (
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Nombre de nuits:</span>
+                      <span className="font-semibold">{calculateNights()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Prix par nuit:</span>
+                      <span className="font-semibold">{room?.prix}€</span>
+                    </div>
+                    <div className="border-t pt-2 flex justify-between text-lg">
+                      <span className="font-bold">Total:</span>
+                      <span className="font-bold text-blue-600">
+                        {calculateTotal()}€
+                      </span>
+                    </div>
+                  </div>
+                )}
 
-            {/* Bouton réserver */}
-            {disponibilite && (
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-300"
-              >
-                {loading ? 'Réservation...' : `Réserver pour ${prixTotal}€`}
-              </button>
-            )}
-          </form>
+                {error && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                    {error}
+                  </div>
+                )}
+
+                {/* Boutons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || calculateNights() === 0}
+                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Réservation...' : 'Confirmer la réservation'}
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>
