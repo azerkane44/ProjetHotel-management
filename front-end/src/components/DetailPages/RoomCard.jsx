@@ -107,11 +107,11 @@ export default function RoomCard({ chambre, onReserver }) {
         )}
 
         {/* Équipements */}
-        {chambre.equipements && chambre.equipements.length > 0 ? (
+        {chambre.equipments && chambre.equipments.length > 0 ? (
           <div className="mb-4">
             <p className="text-sm font-medium text-gray-700 mb-1">Équipements :</p>
             <div className="flex flex-wrap gap-2">
-              {chambre.equipements.slice(0, 3).map((eq, idx) => (
+              {chambre.equipments.slice(0, 3).map((eq, idx) => (
                 <span
                   key={idx}
                   className="text-xs bg-gray-100 px-2 py-1 rounded"
@@ -119,9 +119,9 @@ export default function RoomCard({ chambre, onReserver }) {
                   {eq}
                 </span>
               ))}
-              {chambre.equipements.length > 3 && (
+              {chambre.equipments.length > 3 && (
                 <span className="text-xs text-gray-500">
-                  +{chambre.equipements.length - 3} autres
+                  +{chambre.equipments.length - 3} autres
                 </span>
               )}
             </div>

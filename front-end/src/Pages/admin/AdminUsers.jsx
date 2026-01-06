@@ -32,7 +32,7 @@ export default function AdminUsers() {
                 const text = await res.text();
                 throw new Error(text);
             })
-            .then(user => {
+            .then(userEntity => {
                 setEmail("");
                 setPassword("");
                 fetchUsers();

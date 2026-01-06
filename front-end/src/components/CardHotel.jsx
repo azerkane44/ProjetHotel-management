@@ -24,11 +24,11 @@ export default function CardHotel({ hotel }) {
           </span>
 
            <Link
-                      to={`/hotel/${hotel.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Voir détails
-                    </Link>
+               to={`/hotel/${hotel.id}`}
+               className="text-blue-600 hover:underline"
+           >
+               Voir détails
+           </Link>
         </div>
       </div>
     </div>

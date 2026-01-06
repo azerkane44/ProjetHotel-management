@@ -48,7 +48,7 @@ function App() {
                     }
                 />
                 <Route
-                    path="/admin/add-user"
+                    path="/admin/add-userEntity"
                     element={
                         <ProtectedRoute roleRequired="ROLE_ADMIN">
                             <AdminUsers />

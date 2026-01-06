@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import BarRecherche from "../components/BarRecherche";
 import CardHotel from "../components/CardHotel";
-import Filter from "../components/filter";
 import HotelMap from "../components/HotelMap";
 import { useHotelSearch } from "../hooks/useHotelSearch";
+import Filter from "../components/FilterPro.jsx";
 
 export default function HomePage() {
   const [allHotels, setAllHotels] = useState([]);
@@ -53,9 +53,9 @@ export default function HomePage() {
       if (filters.notationMin && hotel.noteMoyenne < filters.notationMin) return false;
 
       // Filtre équipements
-      if (filters.equipements && filters.equipements.length > 0) {
-        const hotelEquipements = hotel.equipements || [];
-        const hasAllEquipements = filters.equipements.every(eq =>
+      if (filters.equipments && filters.equipments.length > 0) {
+        const hotelEquipements = hotel.equipments || [];
+        const hasAllEquipements = filters.equipments.every(eq =>
           hotelEquipements.includes(eq)
         );
         if (!hasAllEquipements) return false;
