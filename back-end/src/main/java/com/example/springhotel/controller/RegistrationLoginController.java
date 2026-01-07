@@ -1,7 +1,7 @@
 package com.example.springhotel.controller;
 
 import com.example.springhotel.entity.Role;
-import com.example.springhotel.entity.UserEntity;
+import com.example.springhotel.entity.User;
 import com.example.springhotel.repository.RoleRepository;
 import com.example.springhotel.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -56,19 +56,19 @@ public class RegistrationLoginController {
         }
 
         // 👤 Création utilisateur
-        UserEntity userEntity = new UserEntity();
-        userEntity.setEmail(request.getEmail());
-        userEntity.setPassword(passwordEncoder.encode(request.getPassword()));
-        userEntity.setEnabled(true);
-        userEntity.setRoles(List.of(userRole));
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEnabled(true);
+        user.setRoles(List.of(userRole));
 
-        userRepository.save(userEntity);
+        userRepository.save(user);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
                         "message", "Utilisateur créé avec succès",
-                        "id", userEntity.getId(),
-                        "email", userEntity.getEmail()
+                        "id", user.getId(),
+                        "email", user.getEmail()
                 ));
     }
 
