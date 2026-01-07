@@ -2,6 +2,7 @@ package com.example.springhotel.controller;
 
 import com.example.springhotel.entity.User;
 import com.example.springhotel.repository.UserRepository;
+import com.example.springhotel.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1")
-@CrossOrigin(origins = "http://localhost:5173") // autorise React
+@CrossOrigin(origins = "http://localhost:5173")
 public class LoginController {
 
     @Autowired
@@ -22,10 +23,12 @@ public class LoginController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
 
-        // Utilisation de Optional<User>
         Optional<User> userOptional = userRepository.findByEmail(loginRequest.getEmail());
 
         if (userOptional.isEmpty()) {
@@ -38,13 +41,24 @@ public class LoginController {
             return ResponseEntity.badRequest().body("Mot de passe incorrect");
         }
 
-        // Connexion réussie → renvoyer les infos utiles avec les rôles
+        // ✅ Extraire les rôles
         List<String> roles = existingUser.getRoles()
                 .stream()
                 .map(role -> role.getName())
                 .collect(Collectors.toList());
 
+        // ✅ Générer le token JWT
+        String token = jwtUtil.generateToken(
+                existingUser.getEmail(),
+                existingUser.getId(),
+                roles
+        );
+
+        System.out.println("✅ Token généré pour : " + existingUser.getEmail());
+
+        // ✅ Renvoyer le token avec les infos utilisateur
         return ResponseEntity.ok(new UserResponse(
+                token,
                 existingUser.getId(),
                 existingUser.getEmail(),
                 existingUser.getFirstName(),
@@ -53,7 +67,6 @@ public class LoginController {
         ));
     }
 
-    // Classe interne pour la requête de login
     static class LoginRequest {
         private String email;
         private String password;
@@ -65,15 +78,16 @@ public class LoginController {
         public void setPassword(String password) { this.password = password; }
     }
 
-    // Classe interne pour la réponse (sans password)
     static class UserResponse {
+        private String token;
         private Long id;
         private String email;
         private String firstName;
         private String lastName;
         private List<String> roles;
 
-        public UserResponse(Long id, String email, String firstName, String lastName, List<String> roles) {
+        public UserResponse(String token, Long id, String email, String firstName, String lastName, List<String> roles) {
+            this.token = token;
             this.id = id;
             this.email = email;
             this.firstName = firstName;
@@ -81,6 +95,7 @@ public class LoginController {
             this.roles = roles;
         }
 
+        public String getToken() { return token; }
         public Long getId() { return id; }
         public String getEmail() { return email; }
         public String getFirstName() { return firstName; }

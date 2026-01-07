@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .idea/
+
+
+# Ignorer les fichiers contenant des secrets
+.env
+application.properties

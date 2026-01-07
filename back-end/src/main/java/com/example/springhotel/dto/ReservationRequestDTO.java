@@ -9,7 +9,6 @@ public class ReservationRequestDTO {
     private LocalDate dateDebut;
     private LocalDate dateFin;
     private String nomClient;
-    private String emailClient;
     private String telephoneClient;
     private Integer nombrePersonnes;
 }

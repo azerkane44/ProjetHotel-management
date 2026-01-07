@@ -22,12 +22,18 @@ export default function Navbar() {
         <li className="cursor-pointer hover:text-blue-600">
           <Link to="/">Accueil</Link>
         </li>
-        <li className="cursor-pointer hover:text-blue-600">Destinations</li>
-        {isLogged && (
-          <li className="cursor-pointer hover:text-blue-600">
-            Mes réservations
-          </li>
-        )}
+       <li className="cursor-pointer hover:text-blue-600">
+         Destinations
+       </li>
+
+       {isLogged && (
+         <li className="cursor-pointer hover:text-blue-600">
+           <Link to="/mes-reservations">
+             Mes réservations
+           </Link>
+         </li>
+       )}
+
       </ul>
 
       <div className="flex items-center gap-4">

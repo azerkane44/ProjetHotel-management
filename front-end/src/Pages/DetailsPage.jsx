@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import HotelRooms from '../components/DetailPages/HotelRooms';
+import NavBar from "../components/NavBar";
 // ... autres imports
 
 export default function DetailsPage() {
