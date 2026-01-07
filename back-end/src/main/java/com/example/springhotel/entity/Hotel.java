@@ -1,6 +1,6 @@
 package com.example.springhotel.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Hotel {
 
     @Id
@@ -20,7 +21,11 @@ public class Hotel {
     private Long id;
 
     private String nom;
+
     private String ville;
+
+    private String pays;  // ✅ AJOUTÉ
+
     private String adresse;
 
     @Column(columnDefinition = "TEXT")
@@ -32,8 +37,9 @@ public class Hotel {
     @Column(name = "image_url")
     private String imageUrl;
 
-    // ⭐ NOUVEAUX CHAMPS POUR LA RECHERCHE AVANCÉE
+    // Champs pour la recherche avancée
     private Double latitude;
+
     private Double longitude;
 
     @Column(name = "prix_moyen_nuit")
@@ -46,7 +52,7 @@ public class Hotel {
     @Column(name = "equipement")
     private List<String> equipements;
 
-    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
-    @JsonManagedReference  // ✅ Ajout de cette annotation
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("hotel")
     private List<Chambre> chambres;
 }

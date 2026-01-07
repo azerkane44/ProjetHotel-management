@@ -5,11 +5,13 @@ export default function InscriptionUser() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
-    const [debug, setDebug] = useState(null); // 🔍 debug détaillé
+    const [messageType, setMessageType] = useState(""); // "success" ou "error"
+    const [debug, setDebug] = useState(null);
 
     const handleRegister = async (e) => {
         e.preventDefault();
         setMessage("");
+        setMessageType("");
         setDebug(null);
 
         const userData = {
@@ -41,8 +43,12 @@ export default function InscriptionUser() {
 
             console.log("📥 Réponse backend :", responseBody);
 
+            // ✅ Gestion des erreurs HTTP
             if (!response.ok) {
-                setMessage("❌ Erreur backend");
+                // Afficher le message d'erreur du backend
+                const errorMessage = responseBody.error || responseBody.message || "Erreur inconnue";
+                setMessage(errorMessage);
+                setMessageType("error");
                 setDebug({
                     status: response.status,
                     body: responseBody
@@ -50,16 +56,19 @@ export default function InscriptionUser() {
                 return;
             }
 
-            setMessage("✅ Inscription réussie !");
+            // ✅ Succès
+            setMessage("✅ Inscription réussie ! Redirection...");
+            setMessageType("success");
             setDebug(responseBody);
 
             setTimeout(() => {
-                window.location.href = "/Connextion";
-            }, 1000);
+                window.location.href = "/Connexion";
+            }, 1500);
 
         } catch (error) {
             console.error("🚨 Erreur FETCH :", error);
             setMessage("❌ Erreur serveur / réseau");
+            setMessageType("error");
             setDebug(error.message);
         }
     };
@@ -71,17 +80,29 @@ export default function InscriptionUser() {
                     Inscription
                 </h2>
 
+                {/* Message de succès ou d'erreur */}
                 {message && (
-                    <p className="text-center text-sm text-red-600">
+                    <div
+                        className={`p-4 rounded-lg text-center ${
+                            messageType === "success"
+                                ? "bg-green-100 text-green-800 border border-green-300"
+                                : "bg-red-100 text-red-800 border border-red-300"
+                        }`}
+                    >
                         {message}
-                    </p>
+                    </div>
                 )}
 
-                {/* 🔍 DEBUG VISUEL */}
+                {/* 🔍 DEBUG VISUEL (à retirer en production) */}
                 {debug && (
-                    <pre className="bg-gray-100 text-xs p-3 rounded text-red-700 overflow-auto">
-                        {JSON.stringify(debug, null, 2)}
-                    </pre>
+                    <details className="bg-gray-100 p-3 rounded text-xs">
+                        <summary className="cursor-pointer font-semibold text-gray-700">
+                            🔍 Détails techniques
+                        </summary>
+                        <pre className="mt-2 text-red-700 overflow-auto">
+                            {JSON.stringify(debug, null, 2)}
+                        </pre>
+                    </details>
                 )}
 
                 <form onSubmit={handleRegister} className="space-y-5">
@@ -90,6 +111,7 @@ export default function InscriptionUser() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        required
                     />
 
                     <InputField
@@ -97,11 +119,13 @@ export default function InscriptionUser() {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
                     />
 
                     <button
                         type="submit"
-                        className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 font-medium"
+                        className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 font-medium transition-colors"
                     >
                         Créer un compte
                     </button>
