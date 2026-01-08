@@ -7,15 +7,13 @@ export const useChambres = (hotelId = null) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (hotelId) {
-      fetchChambres();
-    } else {
-      setLoading(false);
-    }
+    // ✅ CORRECTION : Charger TOUJOURS les chambres
+    fetchChambres();
   }, [hotelId]);
 
   const fetchChambres = async () => {
     try {
+      console.log('🔄 Chargement des chambres... hotelId:', hotelId);
       setLoading(true);
       setError(null);
 
@@ -23,8 +21,11 @@ export const useChambres = (hotelId = null) => {
         ? await chambreService.getChambresByHotel(hotelId)
         : await chambreService.getAllChambres();
 
+      console.log('✅ Chambres récupérées:', data);
+      console.log('📊 Nombre de chambres:', data?.length || 0);
       setChambres(data || []);
     } catch (err) {
+      console.error('❌ Erreur chargement chambres:', err);
       setError(err.response?.data?.message || 'Erreur lors du chargement des chambres');
       setChambres([]);
     } finally {
@@ -34,10 +35,16 @@ export const useChambres = (hotelId = null) => {
 
   const creerChambre = async (chambre) => {
     try {
+      console.log('➕ Création chambre:', chambre);
       const nouvelle = await chambreService.creerChambre(chambre);
-      setChambres([...chambres, nouvelle]);
+      console.log('✅ Chambre créée:', nouvelle);
+
+      // Recharger la liste complète
+      await fetchChambres();
+
       return { success: true, data: nouvelle };
     } catch (err) {
+      console.error('❌ Erreur création:', err);
       return {
         success: false,
         error: err.response?.data?.message || 'Erreur lors de la création'
@@ -47,10 +54,16 @@ export const useChambres = (hotelId = null) => {
 
   const updateChambre = async (id, chambre) => {
     try {
+      console.log('✏️ Modification chambre:', id, chambre);
       const updated = await chambreService.updateChambre(id, chambre);
-      setChambres(chambres.map(c => c.id === id ? updated : c));
+      console.log('✅ Chambre modifiée:', updated);
+
+      // Recharger la liste complète
+      await fetchChambres();
+
       return { success: true, data: updated };
     } catch (err) {
+      console.error('❌ Erreur modification:', err);
       return {
         success: false,
         error: err.response?.data?.message || 'Erreur lors de la modification'
@@ -60,10 +73,16 @@ export const useChambres = (hotelId = null) => {
 
   const deleteChambre = async (id) => {
     try {
+      console.log('🗑️ Suppression chambre:', id);
       await chambreService.deleteChambre(id);
-      setChambres(chambres.filter(c => c.id !== id));
+      console.log('✅ Chambre supprimée');
+
+      // Recharger la liste complète
+      await fetchChambres();
+
       return { success: true };
     } catch (err) {
+      console.error('❌ Erreur suppression:', err);
       return {
         success: false,
         error: err.response?.data?.message || 'Erreur lors de la suppression'

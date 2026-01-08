@@ -1,5 +1,6 @@
 package com.example.springhotel.controller;
 
+import com.example.springhotel.entity.Role;
 import com.example.springhotel.entity.User;
 import com.example.springhotel.repository.UserRepository;
 import com.example.springhotel.security.JwtUtil;
@@ -28,16 +29,44 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+        System.out.println("\n========== TENTATIVE DE CONNEXION ==========");
+        System.out.println("📧 Email reçu : " + loginRequest.getEmail());
+        System.out.println("🔑 Mot de passe reçu : " + loginRequest.getPassword());
 
         Optional<User> userOptional = userRepository.findByEmail(loginRequest.getEmail());
 
         if (userOptional.isEmpty()) {
+            System.out.println("❌ Utilisateur non trouvé dans la base");
+            System.out.println("============================================\n");
             return ResponseEntity.badRequest().body("Utilisateur non trouvé");
         }
 
         User existingUser = userOptional.get();
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), existingUser.getPassword())) {
+        System.out.println("✅ Utilisateur trouvé :");
+        System.out.println("   - ID : " + existingUser.getId());
+        System.out.println("   - Email : " + existingUser.getEmail());
+        System.out.println("   - Enabled : " + existingUser.isEnabled());
+        System.out.println("   - Hash en base : " + existingUser.getPassword());
+        System.out.println("   - Nombre de rôles : " + existingUser.getRoles().size());
+
+        if (existingUser.getRoles() != null && !existingUser.getRoles().isEmpty()) {
+            System.out.println("   - Rôles : " + existingUser.getRoles().stream()
+                    .map(Role::getName)
+                    .collect(Collectors.toList()));
+        } else {
+            System.out.println("   - ⚠️ AUCUN RÔLE ASSIGNÉ !");
+        }
+
+        System.out.println("\n🔐 Vérification du mot de passe...");
+        boolean passwordMatches = passwordEncoder.matches(loginRequest.getPassword(), existingUser.getPassword());
+        System.out.println("   - Mot de passe saisi : " + loginRequest.getPassword());
+        System.out.println("   - Hash en base : " + existingUser.getPassword());
+        System.out.println("   - Résultat : " + (passwordMatches ? "✅ MATCH" : "❌ NO MATCH"));
+
+        if (!passwordMatches) {
+            System.out.println("❌ Échec de connexion : mot de passe incorrect");
+            System.out.println("============================================\n");
             return ResponseEntity.badRequest().body("Mot de passe incorrect");
         }
 
@@ -54,7 +83,10 @@ public class LoginController {
                 roles
         );
 
-        System.out.println("✅ Token généré pour : " + existingUser.getEmail());
+        System.out.println("✅ Connexion réussie - Token généré");
+        System.out.println("   - Token : " + token.substring(0, Math.min(50, token.length())) + "...");
+        System.out.println("   - Rôles dans le token : " + roles);
+        System.out.println("============================================\n");
 
         // ✅ Renvoyer le token avec les infos utilisateur
         return ResponseEntity.ok(new UserResponse(

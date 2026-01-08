@@ -14,6 +14,22 @@ export default function RoomCard({ chambre, onReserver }) {
   }
 
   console.log('🛏️ RoomCard - chambre reçue:', chambre);
+  console.log('🖼️ RoomCard - imageUrls:', chambre.imageUrls);
+
+  // ✅ Fonction pour construire l'URL complète
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) {
+      return 'https://via.placeholder.com/400x300?text=Pas+d\'image';
+    }
+
+    // Si l'URL commence déjà par http, la retourner telle quelle
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+
+    // Sinon, ajouter le base URL du backend
+    return `http://localhost:8080${imagePath}`;
+  };
 
   const nextImage = () => {
     if (chambre.imageUrls && chambre.imageUrls.length > 0) {
@@ -38,11 +54,15 @@ export default function RoomCard({ chambre, onReserver }) {
         {chambre.imageUrls && chambre.imageUrls.length > 0 ? (
           <>
             <img
-              src={chambre.imageUrls[currentImageIndex]}
+              src={getImageUrl(chambre.imageUrls[currentImageIndex])}
               alt={chambre.nom || 'Chambre'}
               className="w-full h-full object-cover"
               onError={(e) => {
+                console.error('❌ Erreur chargement image:', e.target.src);
                 e.target.src = 'https://via.placeholder.com/400x300?text=Image+non+disponible';
+              }}
+              onLoad={() => {
+                console.log('✅ Image chargée:', chambre.imageUrls[currentImageIndex]);
               }}
             />
 
@@ -51,13 +71,13 @@ export default function RoomCard({ chambre, onReserver }) {
               <>
                 <button
                   onClick={prevImage}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white shadow-lg"
                 >
                   ←
                 </button>
                 <button
                   onClick={nextImage}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white shadow-lg"
                 >
                   →
                 </button>
@@ -78,7 +98,7 @@ export default function RoomCard({ chambre, onReserver }) {
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400">
-            Aucune image
+            🖼️ Aucune image
           </div>
         )}
       </div>
@@ -89,7 +109,7 @@ export default function RoomCard({ chambre, onReserver }) {
 
         <div className="space-y-2 text-sm text-gray-600 mb-4">
           <p>
-            💶 <span className="font-semibold text-lg text-gray-900">
+            💰 <span className="font-semibold text-lg text-blue-600">
               {chambre.prixParNuit || 0}€
             </span> / nuit
           </p>
@@ -114,7 +134,7 @@ export default function RoomCard({ chambre, onReserver }) {
               {chambre.equipements.slice(0, 3).map((eq, idx) => (
                 <span
                   key={idx}
-                  className="text-xs bg-gray-100 px-2 py-1 rounded"
+                  className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded"
                 >
                   {eq}
                 </span>
@@ -135,7 +155,7 @@ export default function RoomCard({ chambre, onReserver }) {
         {/* Bouton réserver */}
         <button
           onClick={() => onReserver(chambre)}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
         >
           Réserver
         </button>

@@ -1,4 +1,4 @@
-package com.example.springhotel.config;
+package com.example.springhotel.configuration;
 
 import com.example.springhotel.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,8 @@ public class SecurityConfig {
                                 "/api/v1/login",
                                 "/api/hotels/**",
                                 "/api/chambres/**",
-                                "/api/search/**"
+                                "/api/search/**",
+                                "/uploads/**"  // ✅ AJOUTÉ - Autoriser l'accès aux images
                         ).permitAll()
 
                         // Routes protégées pour les clients

@@ -6,14 +6,15 @@ export default function CrudHotel() {
   const [hotels, setHotels] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
 
   const [form, setForm] = useState({
     nom: "",
     adresse: "",
     ville: "",
+    pays: "",
     description: "",
-    noteMoyenne: 0,
-    imageUrl: ""
+    noteMoyenne: 0
   });
 
   const loadHotels = async () => {
@@ -22,7 +23,6 @@ export default function CrudHotel() {
       if (!res.ok) throw new Error(`Erreur ${res.status}`);
       const data = await res.json();
 
-      // ✅ Vérifier que data est bien un tableau
       if (Array.isArray(data)) {
         setHotels(data);
         setError(null);
@@ -44,13 +44,14 @@ export default function CrudHotel() {
 
   const resetForm = () => {
     setEditingId(null);
+    setImageFile(null);
     setForm({
       nom: "",
       adresse: "",
       ville: "",
+      pays: "",
       description: "",
-      noteMoyenne: 0,
-      imageUrl: ""
+      noteMoyenne: 0
     });
   };
 
@@ -61,13 +62,14 @@ export default function CrudHotel() {
 
   const handleEdit = (hotel) => {
     setEditingId(hotel.id);
+    setImageFile(null);
     setForm({
       nom: hotel.nom || "",
       adresse: hotel.adresse || "",
       ville: hotel.ville || "",
+      pays: hotel.pays || "",
       description: hotel.description || "",
-      noteMoyenne: hotel.noteMoyenne || 0,
-      imageUrl: hotel.imageUrl || ""
+      noteMoyenne: hotel.noteMoyenne || 0
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -78,6 +80,7 @@ export default function CrudHotel() {
       const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`Erreur ${res.status}`);
       loadHotels();
+      alert("Hôtel supprimé avec succès !");
     } catch (err) {
       console.error("Erreur suppression:", err);
       alert("Erreur lors de la suppression");
@@ -87,10 +90,17 @@ export default function CrudHotel() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      ...form,
-      noteMoyenne: parseFloat(form.noteMoyenne)
-    };
+    const formData = new FormData();
+    formData.append("nom", form.nom);
+    formData.append("adresse", form.adresse);
+    formData.append("ville", form.ville);
+    formData.append("pays", form.pays);
+    formData.append("description", form.description);
+    formData.append("noteMoyenne", form.noteMoyenne);
+
+    if (imageFile) {
+      formData.append("image", imageFile);
+    }
 
     try {
       let res;
@@ -98,15 +108,13 @@ export default function CrudHotel() {
         // Update
         res = await fetch(`${API_BASE}/${editingId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: formData
         });
       } else {
         // Create
         res = await fetch(API_BASE, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: formData
         });
       }
 
@@ -115,6 +123,7 @@ export default function CrudHotel() {
         throw new Error(`Erreur ${res.status}: ${errorText}`);
       }
 
+      alert(editingId ? "Hôtel modifié avec succès !" : "Hôtel ajouté avec succès !");
       resetForm();
       loadHotels();
     } catch (err) {
@@ -125,82 +134,217 @@ export default function CrudHotel() {
 
   return (
     <div className="w-[90%] mx-auto mt-10">
-      <h1 className="text-3xl font-bold mb-6">Gestion des hôtels</h1>
+      <h1 className="text-3xl font-bold mb-6">🏨 Gestion des hôtels</h1>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          Erreur: {error}
+          ⚠️ Erreur: {error}
         </div>
       )}
 
       {/* Formulaire */}
-      <form onSubmit={handleSubmit} className="bg-white p-6 shadow rounded mb-8 grid grid-cols-2 gap-4">
-        <h2 className="col-span-2 text-xl font-semibold">
-          {editingId ? "Modifier l'hôtel" : "Ajouter un hôtel"}
+      <form onSubmit={handleSubmit} className="bg-white p-6 shadow-lg rounded-lg mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-600">
+          {editingId ? "✏️ Modifier l'hôtel" : "➕ Ajouter un hôtel"}
         </h2>
 
-        <input name="nom" value={form.nom} onChange={handleChange} placeholder="Nom" className="border p-2 rounded" required />
-        <input name="adresse" value={form.adresse} onChange={handleChange} placeholder="Adresse" className="border p-2 rounded" />
-        <input name="ville" value={form.ville} onChange={handleChange} placeholder="Ville" className="border p-2 rounded" />
-        <input name="noteMoyenne" type="number" step="0.1" value={form.noteMoyenne} onChange={handleChange} placeholder="Note moyenne" className="border p-2 rounded" />
-        <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" className="border p-2 rounded col-span-2" />
-        <input name="imageUrl" value={form.imageUrl} onChange={handleChange} placeholder="URL de l'image" className="border p-2 rounded col-span-2" />
-
-        {form.imageUrl && (
-          <div className="col-span-2">
-            <p className="text-sm mb-2">Aperçu :</p>
-            <img src={form.imageUrl} alt="preview" style={{ maxWidth: 240, maxHeight: 160 }} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nom de l'hôtel *
+            </label>
+            <input
+              name="nom"
+              value={form.nom}
+              onChange={handleChange}
+              placeholder="Ex: Hôtel Royal"
+              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
           </div>
-        )}
 
-        <div className="col-span-2 flex gap-4">
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
-            {editingId ? "Mettre à jour" : "Ajouter"}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ville *
+            </label>
+            <input
+              name="ville"
+              value={form.ville}
+              onChange={handleChange}
+              placeholder="Ex: Paris"
+              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Pays *
+            </label>
+            <input
+              name="pays"
+              value={form.pays}
+              onChange={handleChange}
+              placeholder="Ex: France"
+              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Adresse
+            </label>
+            <input
+              name="adresse"
+              value={form.adresse}
+              onChange={handleChange}
+              placeholder="Ex: 123 Rue de la Paix"
+              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Note moyenne (0-5)
+            </label>
+            <input
+              name="noteMoyenne"
+              type="number"
+              step="0.1"
+              min="0"
+              max="5"
+              value={form.noteMoyenne}
+              onChange={handleChange}
+              placeholder="Ex: 4.5"
+              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Image de l'hôtel
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files[0])}
+              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {imageFile && (
+              <p className="text-sm text-green-600 mt-1">
+                ✅ {imageFile.name}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Décrivez l'hôtel..."
+            rows="4"
+            className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div className="flex gap-4 mt-6">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+          >
+            {editingId ? "💾 Mettre à jour" : "➕ Ajouter"}
           </button>
-          <button type="button" onClick={resetForm} className="bg-gray-300 px-4 py-2 rounded">Annuler</button>
+          <button
+            type="button"
+            onClick={resetForm}
+            className="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition font-medium"
+          >
+            ❌ Annuler
+          </button>
         </div>
       </form>
 
       {/* Liste */}
-      <h2 className="text-xl font-semibold mb-4">Liste des hôtels ({hotels.length})</h2>
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4">
+          <h2 className="text-xl font-bold text-white">
+            📋 Liste des hôtels ({hotels.length})
+          </h2>
+        </div>
 
-      {hotels.length === 0 ? (
-        <p className="text-gray-500">Aucun hôtel trouvé</p>
-      ) : (
-        <table className="w-full border">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="p-2 border">ID</th>
-              <th className="p-2 border">Image</th>
-              <th className="p-2 border">Nom</th>
-              <th className="p-2 border">Ville</th>
-              <th className="p-2 border">Note</th>
-              <th className="p-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {hotels.map(h => (
-              <tr key={h.id}>
-                <td className="p-2 border">{h.id}</td>
-                <td className="p-2 border">
-                  {h.imageUrl ? (
-                    <img src={h.imageUrl} alt={h.nom} style={{ width: 120, height: 80, objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ width: 120, height: 80, background: "#eee", display: "flex", alignItems: "center", justifyContent: "center" }}>No image</div>
-                  )}
-                </td>
-                <td className="p-2 border">{h.nom}</td>
-                <td className="p-2 border">{h.ville}</td>
-                <td className="p-2 border">{h.noteMoyenne}</td>
-                <td className="p-2 border flex gap-2 justify-center">
-                  <button onClick={() => handleEdit(h)} className="bg-yellow-500 text-white px-3 py-1 rounded">Modifier</button>
-                  <button onClick={() => handleDelete(h.id)} className="bg-red-600 text-white px-3 py-1 rounded">Supprimer</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+        {hotels.length === 0 ? (
+          <p className="text-gray-500 p-10 text-center">Aucun hôtel trouvé</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-100 border-b-2 border-gray-300">
+                  <th className="p-3 text-left font-semibold text-gray-700">ID</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Image</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Nom</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Ville</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Pays</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Note</th>
+                  <th className="p-3 text-center font-semibold text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hotels.map(h => (
+                  <tr key={h.id} className="border-b hover:bg-gray-50 transition">
+                    <td className="p-3 text-gray-600">{h.id}</td>
+                    <td className="p-3">
+                      {h.imageUrl ? (
+                        <img
+                          src={`http://localhost:8080${h.imageUrl}`}
+                          alt={h.nom}
+                          className="w-24 h-16 object-cover rounded"
+                          onError={(e) => {
+                            e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="96" height="64"%3E%3Crect width="96" height="64" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="24"%3E🏨%3C/text%3E%3C/svg%3E';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-24 h-16 bg-gray-200 rounded flex items-center justify-center text-2xl">
+                          🏨
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-3 font-medium text-gray-800">{h.nom}</td>
+                    <td className="p-3 text-gray-600">{h.ville}</td>
+                    <td className="p-3 text-gray-600">{h.pays || "—"}</td>
+                    <td className="p-3">
+                      <span className="text-yellow-500 font-bold">
+                        ⭐ {h.noteMoyenne}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => handleEdit(h)}
+                          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition font-medium"
+                        >
+                          ✏️ Modifier
+                        </button>
+                        <button
+                          onClick={() => handleDelete(h.id)}
+                          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition font-medium"
+                        >
+                          🗑️ Supprimer
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

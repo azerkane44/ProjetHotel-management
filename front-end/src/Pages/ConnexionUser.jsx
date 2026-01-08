@@ -52,9 +52,9 @@ export default function ConnextionUser() {
                 // ✅ Redirection selon le rôle après 1 seconde
                 setTimeout(() => {
                     if (data.roles[0] === "ROLE_ADMIN") {
-                        window.location.href = "/admin/dashboard";
+                        window.location.href = "/";
                     } else if (data.roles[0] === "ROLE_EMPLOYE") {
-                        window.location.href = "/employe/dashboard";
+                        window.location.href = "/";
                     } else {
                         window.location.href = "/";
                     }
@@ -150,12 +150,7 @@ export default function ConnextionUser() {
                 </div>
 
                 {/* ✅ Zone de debug (à retirer en production) */}
-                <div className="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600">
-                    <p><strong>🔍 Debug:</strong></p>
-                    <p>Token présent: {localStorage.getItem("token") ? "✅ OUI" : "❌ NON"}</p>
-                    <p>Email: {localStorage.getItem("email") || "Non connecté"}</p>
-                    <p>Rôle: {localStorage.getItem("role") || "Aucun"}</p>
-                </div>
+
             </div>
         </div>
     );
