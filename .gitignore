@@ -39,7 +39,6 @@ front-end/dist/
 
 # Backend
 node_modules/
-
 # Logs / cache
 *.log
 .env
