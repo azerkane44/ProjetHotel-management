@@ -41,13 +41,13 @@ public class Reservation {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
+    @Builder.Default // permet d’affecter une valeur par défaut, à un attribut si elle n’est pas renseignée lors de la création de l'instance
     private StatutReservation statut = StatutReservation.EN_ATTENTE;
 
     @Column(unique = true)
     private String codeConfirmation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY) // Les entités en relation ne sont chargées qu’au moment de l’accès
     @JoinColumn(name = "chambre_id", nullable = false)
     @JsonIgnore
     private Chambre chambre;

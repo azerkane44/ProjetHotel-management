@@ -34,7 +34,7 @@ public class User {
     )
     private List<Role> roles = new ArrayList<>();
 
-    // ⭐ MÉTHODES UTILITAIRES POUR COMPATIBILITÉ
+    // MÉTHODES UTILITAIRES POUR COMPATIBILITÉ
     public String getNom() {
         return lastName;
     }

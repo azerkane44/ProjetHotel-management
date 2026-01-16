@@ -79,7 +79,7 @@ public class HotelController {
 
                 hotel.setImageUrl("/uploads/hotels/" + fileName);
                 System.out.println("✅ Image sauvegardée : " + filePath);
-                System.out.println("🔗 URL : " + hotel.getImageUrl());
+                System.out.println(" URL : " + hotel.getImageUrl());
             } catch (IOException e) {
                 System.err.println("❌ Erreur sauvegarde image : " + e.getMessage());
                 e.printStackTrace();
@@ -106,10 +106,10 @@ public class HotelController {
             @RequestParam(required = false) MultipartFile image
     ) {
         System.out.println("\n========== MODIFICATION HÔTEL ==========");
-        System.out.println("🆔 ID : " + id);
-        System.out.println("📝 Nom : " + nom);
-        System.out.println("📍 Ville : " + ville);
-        System.out.println("🌍 Pays : " + pays);
+        System.out.println(" ID : " + id);
+        System.out.println(" Nom : " + nom);
+        System.out.println(" Ville : " + ville);
+        System.out.println(" Pays : " + pays);
 
         Hotel hotel = hotelRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Hotel introuvable"));

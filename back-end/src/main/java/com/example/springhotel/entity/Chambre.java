@@ -57,12 +57,12 @@ public class Chambre {
     // Relation avec Hotel (ManyToOne)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
-    @JsonBackReference  // ✅ Ajout de cette annotation
+    @JsonBackReference  // Ajout de cette annotation
     private Hotel hotel;
 
     // Relation avec Reservation (OneToMany, bidirectionnelle)
     @OneToMany(mappedBy = "chambre", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore  // ✅ Ajout de cette annotation
+    @JsonIgnore  // Ajout de cette annotation
     @Builder.Default
     private List<Reservation> reservations = new ArrayList<>();
 
