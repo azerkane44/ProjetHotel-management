@@ -86,8 +86,4 @@ public class Chambre {
         reservations.remove(reservation);
         reservation.setChambre(null);
     }
-
-    public Object getType() {
-        return null;
-    }
 }
